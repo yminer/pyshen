@@ -24,7 +24,7 @@ import uuid
 # tail_call=apply
 FUNCTIONS = dict()
 VARS = dict()
-SYMS = ['!', '}', '{', '-->', '<--', '&&', ':', ';', ':-', ':=', '_', '*language*', '*implementation*', '*stinput*', '*home-directory*', '*version*', '*maximum-print-sequence-size*', '*macros*', '*os*', '*release*', '*property-vector*', '@v', '@p', '@s', '*port*', '*porters*', '<-', '->', '<e>', '==', '=', '>=', '>', '/.', '=!', '$', '-', '/', '*', '+', '<=', '<', '>>', '==>', 'y-or-n?', 'write-to-file', 'where', 'when', 'warn', 'version', 'verified', 'variable?', 'value', 'vector->', '<-vector', 'vector', 'vector?', 'unspecialise', 'untrack', 'unit', 'shen.unix', 'union', 'unify', 'unify!', 'unprofile', 'undefmacro', 'return', 'type', 'tuple?', "false", 'trap-error', 'track', 'time', 'thaw', 'tc?', 'tc', 'tl', 'tlstr', 'tlv', 'tail', 'systemf', 'synonyms', 'symbol', 'symbol?', 'string->symbol', 'subst', 'string?', 'string->n', 'stream', 'string', 'stinput', 'stoutput', 'step', 'spy', 'specialise', 'snd', 'simple-error', 'set', 'save', 'str', 'run', 'reverse', 'remove', 'read', 'read-file', 'read-file-as-bytelist', 'read-file-as-string', 'read-byte', 'read-from-string', 'quit', 'put', 'preclude', 'preclude-all-but', 'ps', 'prolog?', 'protect', 'profile-results', 'profile', 'print', 'pr', 'pos', 'package', 'output', 'out', 'or', 'open', 'occurrences', 'occurs-check', 'n->string', 'number?', 'number', 'null', 'nth', 'not', 'nl', 'mode', 'macro', 'macroexpand', 'maxinferences', 'mapcan', 'map', 'make-string', 'load', 'loaded', 'list', 'lineread', 'limit', 'length', 'let', 'lazy', 'lambda', 'is', 'intersection', 'inferences', 'intern', 'integer?', 'input', 'input+', 'include', 'include-all-but', 'in', 'if', 'identical', 'head', 'hd', 'hdv', 'hdstr', 'hash', 'get', 'get-time', 'gensym', 'function', 'fst', 'freeze', 'fix', 'file', 'fail', 'fail-if', 'fwhen', 'findall', "true", 'enable-type-theory', 'explode', 'external', 'exception', 'eval-kl', 'eval', 'error-to-string', 'error', 'empty?', 'element?', 'do', 'difference', 'destroy', 'defun', 'define', 'defmacro', 'defcc', 'defprolog', 'declare', 'datatype', 'cut', 'cn', 'cons?', 'cons', 'cond', 'concat', 'compile', 'cd', 'cases', 'call', 'close', 'bind', 'bound?', 'boolean?', 'boolean', 'bar!', 'assoc', 'arity', 'append', 'and', 'adjoin', '<-address', 'address->', 'absvector?', 'absvector', 'abort']
+SYMS = ['!', '}', '{', '-->', '<--', '&&', ':', ';', ':-', ':=', '_', '*language*', '*implementation*', '*stinput*', '*home-directory*', '*version*', '*maximum-print-sequence-size*', '*macros*', '*os*', '*release*', '*property-vector*', '@v', '@p', '@s', '*port*', '*porters*', '<-', '->', '<e>', '==', '=', '>=', '>', '/.', '=!', '$', '-', '/', '*', '+', '<=', '<', '>>', '==>', 'y-or-n?', 'write-to-file', 'where', 'when', 'warn', 'version', 'verified', 'variable?', 'value', 'vector->', '<-vector', 'vector', 'vector?', 'unspecialise', 'untrack', 'unit', 'shen.unix', 'union', 'unify', 'unify!', 'unprofile', 'undefmacro', 'return', 'type', 'tuple?', "false", 'trap-error', 'track', 'time', 'thaw', 'tc?', 'tc', 'tl', 'tlstr', 'tlv', 'tail', 'systemf', 'synonyms', 'symbol', 'symbol?', 'string->symbol', 'subst', 'string?', 'string->n', 'stream', 'string', 'stinput', 'stoutput', 'step', 'spy', 'specialise', 'snd', 'simple-error', 'set', 'save', 'str', 'run', 'reverse', 'remove', 'read', 'read-file', 'read-file-as-bytelist', 'read-file-as-string', 'read-byte', 'read-from-string', 'quit', 'put', 'preclude', 'preclude-all-but', 'ps', 'prolog?', 'protect', 'profile-results', 'profile', 'print', 'pr', 'pos', 'package', 'output', 'out', 'or', 'open', 'occurrences', 'occurs-check', 'n->string', 'number?', 'number', 'null', 'nth', 'not', 'nl', 'mode', 'macro', 'macroexpand', 'maxinferences', 'mapcan', 'map', 'make-string', 'load', 'loaded', 'list', 'lineread', 'limit', 'length', 'let', 'lazy', 'lambda', 'is', 'intersection', 'inferences', 'intern', 'integer?', 'input', 'input+', 'include', 'include-all-but', 'in', 'if', 'identical', 'head', 'hd', 'hdv', 'hdstr', 'hash', 'get', 'get-time', 'gensym', 'function', 'fst', 'freeze', 'fix', 'file', 'fail', 'fail-if', 'fwhen', 'findall', "true", 'enable-type-theory', 'explode', 'external', 'exception', 'eval-kl', 'eval', 'error-to-string', 'error', 'empty?', 'element?', 'do', 'difference', 'destroy', 'defun', 'define', 'defmacro', 'defcc', 'defprolog', 'declare', 'datatype', 'cut', 'cn', 'cons?', 'cons', 'cond', 'concat', 'compile', 'cd', 'cases', 'call', 'close', 'bind', 'bound?', 'boolean?', 'boolean', 'bar!', 'assoc', 'arity', 'append', 'and', 'adjoin', '<-address', 'address->', 'absvector?', 'absvector', 'abort', "super", "exists"]
 SYMDIC = dict()
 SYMDIC_MODE = False
 
@@ -775,6 +775,8 @@ def shen_gt(x, y): return x > y
 def shen_lt(x, y): return x < y
 def shen_gte(x, y): return x >= y
 def shen_lte(x, y): return x <= y
+def shen_or(x, y): return x or y
+def shen_and(x, y): return x and y
 
 class ShenEnv:
     PRIMITIVES = {
@@ -992,6 +994,10 @@ class ShenEnv:
             expr = self.compile_type(form, lexical_vars, in_tail_pos)
         elif sym == "if":
             expr = self.compile_if(form, lexical_vars, in_tail_pos)
+        elif sym == "or":
+            expr = self.compile_or(form, lexical_vars, in_tail_pos)
+        elif sym == "and":
+            expr = self.compile_and(form, lexical_vars, in_tail_pos)
         elif sym == "cond":
             expr = self.compile_cond(form, lexical_vars, in_tail_pos)
         elif sym == "do":
@@ -1056,6 +1062,24 @@ class ShenEnv:
         true_clause = self.compile_shen(true_expr, lexical_vars, in_tail_pos)
         false_clause = self.compile_shen(false_expr, lexical_vars, in_tail_pos)
         return ast.IfExp(test_clause, true_clause, false_clause)
+    
+    def compile_or(self, form, lexical_vars, in_tail_pos):
+        global ShenTrue, ShenFalse
+        if cons_length(form) == 3:
+            exp1, exp2 = cons_nth(1, form), cons_nth(2, form)
+            return self.compile_if(shen_to_cons([Sym("if"), exp1, ShenTrue, exp2]),
+                                   lexical_vars, in_tail_pos)
+        else:
+            return self.compile_application(form, lexical_vars, in_tail_pos)
+        
+    def compile_and(self, form, lexical_vars, in_tail_pos):
+        global ShenTrue, ShenFalse
+        if cons_length(form) == 3:
+            exp1, exp2 = cons_nth(1, form), cons_nth(2, form)
+            return self.compile_if(shen_to_cons([Sym("if"), exp1, exp2, ShenFalse]),
+                                   lexical_vars, in_tail_pos)
+        else:
+            return self.compile_application(form, lexical_vars, in_tail_pos)
 
     def compile_cond(self, form, lexical_vars, in_tail_pos):
         clauses = cdr(form)
@@ -1252,7 +1276,9 @@ def compile_pyshen():
     global SYMDIC, SYMDIC_MODE
     SYMDIC_MODE = True
     env = ShenEnv()
-    shen_decls = [ast.parse('VARS.update({"*language*": "Python", "*implementation*": "pyshen - cpython", "*release*": 10, "*port*": 0.135, "*porters*": "Matthieu Lagacherie, Yannick Drant", "*home-directory*": "~/", "*stinput*": sys.stdin, "*stoutput*": sys.stdout, "*version*": 0.1})')]
+    shen_decls = [
+        ast.parse('FUNCTIONS.update({"or": shen_or, "and": shen_and})'),
+        ast.parse('VARS.update({"*language*": "Python", "*implementation*": "pyshen", "*release*": "", "*port*": "0.135", "*porters*": "Matthieu Lagacherie and Yannick Drant", "*home-directory*": "~/", "*stinput*": sys.stdin, "*stoutput*": sys.stdout, "*version*": "version 11"})')]
     shen_postdecls = [ast.parse("shen_initialise_arity_table(shen_to_cons([Sym('absvector'), 1, Sym('adjoin'), 2, Sym('and'), 2, Sym('append'), 2, Sym('arity'), 1, Sym('assoc'), 2, Sym('boolean?'), 1, Sym('cd'), 1, Sym('compile'), 3, Sym('concat'), 2, Sym('cons'), 2, Sym('cons?'), 1, Sym('cn'), 2, Sym('declare'), 2, Sym('destroy'), 1, Sym('difference'), 2, Sym('do'), 2, Sym('element?'), 2, Sym('empty?'), 1, Sym('enable-type-theory'), 1, Sym('interror'), 2, Sym('eval'), 1, Sym('eval-kl'), 1, Sym('explode'), 1, Sym('external'), 1, Sym('fail-if'), 2, Sym('fail'), 0, Sym('fix'), 2, Sym('findall'), 5, Sym('freeze'), 1, Sym('fst'), 1, Sym('gensym'), 1, Sym('get'), 3, Sym('get-time'), 1, Sym('address->'), 3, Sym('<-address'), 2, Sym('<-vector'), 2, Sym('>'), 2, Sym('>='), 2, Sym('='), 2, Sym('hd'), 1, Sym('hdv'), 1, Sym('hdstr'), 1, Sym('head'), 1, Sym('if'), 3, Sym('integer?'), 1, Sym('identical'), 4, Sym('inferences'), 0, Sym('intersection'), 2, Sym('length'), 1, Sym('lineread'), 0, Sym('load'), 1, Sym('<'), 2, Sym('<='), 2, Sym('vector'), 1, Sym('macroexpand'), 1, Sym('map'), 2, Sym('mapcan'), 2, Sym('maxinferences'), 1, Sym('not'), 1, Sym('nth'), 2, Sym('n->string'), 1, Sym('number?'), 1, Sym('occurs-check'), 1, Sym('occurrences'), 2, Sym('occurs-check'), 1, Sym('or'), 2, Sym('package'), 3, Sym('pos'), 2, Sym('print'), 1, Sym('profile'), 1, Sym('profile-results'), 0, Sym('pr'), 2, Sym('ps'), 1, Sym('preclude'), 1, Sym('preclude-all-but'), 1, Sym('protect'), 1, Sym('address->'), 3, Sym('put'), 4, Sym('shen.reassemble'), 2, Sym('read-file-as-string'), 1, Sym('read-file'), 1, Sym('read-byte'), 1, Sym('read-from-string'), 1, Sym('remove'), 2, Sym('reverse'), 1, Sym('set'), 2, Sym('simple-error'), 1, Sym('snd'), 1, Sym('specialise'), 1, Sym('spy'), 1, Sym('step'), 1, Sym('stinput'), 0, Sym('stoutput'), 0, Sym('string->n'), 1, Sym('string->symbol'), 1, Sym('string?'), 1, Sym('shen.strong-warning'), 1, Sym('subst'), 3, Sym('shen.sum'), 1, Sym('symbol?'), 1, Sym('tail'), 1, Sym('tl'), 1, Sym('tc'), 1, Sym('tc?'), 1, Sym('thaw'), 1, Sym('track'), 1, Sym('trap-error'), 2, Sym('tuple?'), 1, Sym('type'), 1, Sym('return'), 3, Sym('undefmacro'), 1, Sym('unprofile'), 1, Sym('unify'), 4, Sym('unify!'), 4, Sym('union'), 2, Sym('untrack'), 1, Sym('unspecialise'), 1, Sym('undefmacro'), 1, Sym('vector'), 1, Sym('vector->'), 3, Sym('value'), 1, Sym('variable?'), 1, Sym('version'), 1, Sym('warn'), 1, Sym('write-to-file'), 2, Sym('y-or-n?'), 1, Sym('+'), 2, Sym('*'), 2, Sym('/'), 2, Sym('-'), 2, Sym('=='), 2, Sym('shen.<1>'), 1, Sym('<e>'), 1, Sym('@p'), 2, Sym('@v'), 2, Sym('@s'), 2, Sym('preclude'), 1, Sym('include'), 1, Sym('preclude-all-but'), 1, Sym('include-all-but'), 1, Sym('where'), 2]))"),
                   ast.parse("kl_put(shen_intern('shen'), Sym('shen.external-symbols'), shen_to_cons([Sym('!'), Sym('}'), Sym('{'), Sym('-->'), Sym('<--'), Sym('&&'), Sym(':'), Sym(';'), Sym(':-'), Sym(':='), Sym('_'), Sym('*language*'), Sym('*implementation*'), Sym('*stinput*'), Sym('*home-directory*'), Sym('*version*'), Sym('*maximum-print-sequence-size*'), Sym('*macros*'), Sym('*os*'), Sym('*release*'), Sym('*property-vector*'), Sym('@v'), Sym('@p'), Sym('@s'), Sym('*port*'), Sym('*porters*'), Sym('<-'), Sym('->'), Sym('<e>'), Sym('=='), Sym('='), Sym('>='), Sym('>'), Sym('/.'), Sym('=!'), Sym('$'), Sym('-'), Sym('/'), Sym('*'), Sym('+'), Sym('<='), Sym('<'), Sym('>>'), tco_apply(kl_vector, [0]), Sym('==>'), Sym('y-or-n?'), Sym('write-to-file'), Sym('where'), Sym('when'), Sym('warn'), Sym('version'), Sym('verified'), Sym('variable?'), Sym('value'), Sym('vector->'), Sym('<-vector'), Sym('vector'), Sym('vector?'), Sym('unspecialise'), Sym('untrack'), Sym('unit'), Sym('shen.unix'), Sym('union'), Sym('unify'), Sym('unify!'), Sym('unprofile'), Sym('undefmacro'), Sym('return'), Sym('type'), Sym('tuple?'), Sym('true'), Sym('trap-error'), Sym('track'), Sym('time'), Sym('thaw'), Sym('tc?'), Sym('tc'), Sym('tl'), Sym('tlstr'), Sym('tlv'), Sym('tail'), Sym('systemf'), Sym('synonyms'), Sym('symbol'), Sym('symbol?'), Sym('string->symbol'), Sym('subst'), Sym('string?'), Sym('string->n'), Sym('stream'), Sym('string'), Sym('stinput'), Sym('stoutput'), Sym('step'), Sym('spy'), Sym('specialise'), Sym('snd'), Sym('simple-error'), Sym('set'), Sym('save'), Sym('str'), Sym('run'), Sym('reverse'), Sym('remove'), Sym('read'), Sym('read-file'), Sym('read-file-as-bytelist'), Sym('read-file-as-string'), Sym('read-byte'), Sym('read-from-string'), Sym('quit'), Sym('put'), Sym('preclude'), Sym('preclude-all-but'), Sym('ps'), Sym('prolog?'), Sym('protect'), Sym('profile-results'), Sym('profile'), Sym('print'), Sym('pr'), Sym('pos'), Sym('package'), Sym('output'), Sym('out'), Sym('or'), Sym('open'), Sym('occurrences'), Sym('occurs-check'), Sym('n->string'), Sym('number?'), Sym('number'), Sym('null'), Sym('nth'), Sym('not'), Sym('nl'), Sym('mode'), Sym('macro'), Sym('macroexpand'), Sym('maxinferences'), Sym('mapcan'), Sym('map'), Sym('make-string'), Sym('load'), Sym('loaded'), Sym('list'), Sym('lineread'), Sym('limit'), Sym('length'), Sym('let'), Sym('lazy'), Sym('lambda'), Sym('is'), Sym('intersection'), Sym('inferences'), Sym('intern'), Sym('integer?'), Sym('input'), Sym('input+'), Sym('include'), Sym('include-all-but'), Sym('in'), Sym('if'), Sym('identical'), Sym('head'), Sym('hd'), Sym('hdv'), Sym('hdstr'), Sym('hash'), Sym('get'), Sym('get-time'), Sym('gensym'), Sym('function'), Sym('fst'), Sym('freeze'), Sym('fix'), Sym('file'), Sym('fail'), Sym('fail-if'), Sym('fwhen'), Sym('findall'), Sym('false'), Sym('enable-type-theory'), Sym('explode'), Sym('external'), Sym('exception'), Sym('eval-kl'), Sym('eval'), Sym('error-to-string'), Sym('error'), Sym('empty?'), Sym('element?'), Sym('do'), Sym('difference'), Sym('destroy'), Sym('defun'), Sym('define'), Sym('defmacro'), Sym('defcc'), Sym('defprolog'), Sym('declare'), Sym('datatype'), Sym('cut'), Sym('cn'), Sym('cons?'), Sym('cons'), Sym('cond'), Sym('concat'), Sym('compile'), Sym('cd'), Sym('cases'), Sym('call'), Sym('close'), Sym('bind'), Sym('bound?'), Sym('boolean?'), Sym('boolean'), Sym('bar!'), Sym('assoc'), Sym('arity'), Sym('append'), Sym('and'), Sym('adjoin'), Sym('<-address'), Sym('address->'), Sym('absvector?'), Sym('absvector'), Sym('abort')]), shen_get(Sym('*property-vector*')))")]
     shen_body = shen_decls
@@ -1284,29 +1310,16 @@ def compile_pyshen():
     module = ast.Module(body=module_body)
     fix(module)
     fpo  = open("shen.py", "w+")
+    fpo.write(open("header.py", "r").read())
+    fpo.write("\n")
     unparse.Unparser(module, fpo)
     # fpo.write('\ndef pyshen(): [shen_init(), shen_eval_kl(shen_to_cons([Sym("shen.shen")]), globals())]\n')
+    fpo.write(open("footer.py", "r").read())
     fpo.close()
     SYMDIC_MODE = False
-    # for code in module.body:
-    #     if isa(code, ast.ClassDef):
-    #         for subcode in code.body:
-    #             if not isa(subcode, str):
-    #                 print ast.dump(subcode)
-    #                 bcode = compile(fix(ast.Module(body=[subcode])), "<string>", "exec")
-    # exec(bcode, globals(), locals())
 
+# import pyximport; pyximport.install()
 from shen import *
-
-def shen_expt(KL_ARG_V1518_757, KL_ARG_V1519_758):
-    KL_ARG_V1518_757, KL_ARG_V1519_758 = float(KL_ARG_V1518_757), float(KL_ARG_V1519_758)
-    return (1 if (0 == KL_ARG_V1519_758) else ((KL_ARG_V1518_757 * tco_apply(shen_expt, [KL_ARG_V1518_757, (KL_ARG_V1519_758 - 1)])) if (KL_ARG_V1519_758 > 0) else ((1 * (tco_apply(shen_expt, [KL_ARG_V1518_757, (KL_ARG_V1519_758 + 1)]) / KL_ARG_V1518_757)) if True else shen_simple_error('condition failure'))))
-
-def kl_booleanx63(KL_ARG_V1857_1068):
-    if isinstance(KL_ARG_V1857_1068, Sym) and (KL_ARG_V1857_1068.sym == "true" or KL_ARG_V1857_1068.sym == "false"):
-        return True
-    else:
-        return (True if (True == KL_ARG_V1857_1068) else (True if (False == KL_ARG_V1857_1068) else (False if True else shen_simple_error('condition failure'))))
 
 def pyshen():
     shen_eval_kl(shen_to_cons([Sym("shen.shen")]), globals())

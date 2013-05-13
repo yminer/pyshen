@@ -2,6 +2,8 @@
 
 PyShen is a port of the [Shen](http://shenlanguage.org/) language to Python. This port support Shen version 11, released in May 2013.
 
+Shen is a functional lisp with pattern matching, optional lazy evaluation, optional static type checking and an integrated prolog compiler.
+
 ## Installation
 
 PyShen requires Python > 2.5 and numpy. pyshen was developed with Python 2.7.

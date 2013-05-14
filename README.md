@@ -12,30 +12,30 @@ The implementation of the parser and compiler follows [ShenRuby](https://github.
 
 ### Compilation of K-Lambda to Python
 
-           +------------------+               +------------------+
-           |   LEXER/PARSER   |               |     COMPILER     |
-           |------------------|               |------------------|
-           |Translated in CONS|               |                  |
-K-Lambda-->|expressions using |+---lists----> | Generates Python |
-           |Python lists      |               |     AST tree     |
-           |                  |               |                  |
-           +------------------+               +------------------+
-                                                       +
-                                                       |
-                                                      AST
-                                                       |                   +----------------+
-                                                       v                   |    BYTECODE    |
-                                              +------------------+   +----+|  (real time)   |
-                                              |   AST VISITORS   |   |     +----------------+
-                                              |------------------|   |
-                                              |                  |   |
-                                              | Transformations  |+--+
-                                              | with Python AST  |   |
-                                              |     visitors     |   |     +----------------+
-                                              +------------------+   |     | PYTHON SOURCE  |
-                                                                     +----+| (K-lambda shen |
-                                                                           |  bootstrap)    |
-                                                                           +----------------+
+                +------------------+               +------------------+
+                |   LEXER/PARSER   |               |     COMPILER     |
+                |------------------|               |------------------|
+                |Translated in CONS|               |                  |
+     K-Lambda-->|expressions using |+---lists----> | Generates Python |
+                |Python lists      |               |     AST tree     |
+                |                  |               |                  |
+                +------------------+               +------------------+
+                                                            +
+                                                            |
+                                                           AST
+                                                            |                   +----------------+
+                                                            v                   |    BYTECODE    |
+                                                   +------------------+   +----+|  (real time)   |
+                                                   |   AST VISITORS   |   |     +----------------+
+                                                   |------------------|   |
+                                                   |                  |   |
+                                                   | Transformations  |+--+
+                                                   | with Python AST  |   |
+                                                   |     visitors     |   |     +----------------+
+                                                   +------------------+   |     | PYTHON SOURCE  |
+                                                                          +----+| (K-lambda shen |
+                                                                                |  bootstrap)    |
+                                                                                +----------------+
 
 ## Installation
 

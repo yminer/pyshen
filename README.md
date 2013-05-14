@@ -4,7 +4,7 @@ PyShen is a port of the [Shen](http://shenlanguage.org/) language to Python. Thi
 
 Shen is a functional lisp with pattern matching, optional lazy evaluation, optional static type checking and an integrated prolog compiler.
 
-This release is a [POC](http://en.wikipedia.org/wiki/Proof_of_concept) of integration of a pure functional language in the Python language. The implementation is small (~ 1300 lines of Python, 6500 lines of generated python code) and passes all the Shen Test Suite but is not yet a lightning-fast Shen implementation (in our tests, 5/6 time slower than CLisp implementation).
+This release is a test of integration of a pure functional language in the Python language. The implementation is small (~ 1300 lines of Python, 6500 lines of generated python code) and passes all the Shen Test Suite but is not yet a lightning-fast Shen implementation (in our tests, 5/6 time slower than CLisp implementation).
 
 ## Implementation
 

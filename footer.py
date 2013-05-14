@@ -10,3 +10,4 @@ def kl_booleanx63(KL_ARG_V1857_1068):
         return True
     else:
         return (True if (True == KL_ARG_V1857_1068) else (True if (False == KL_ARG_V1857_1068) else (False if True else shen_simple_error('condition failure'))))
+

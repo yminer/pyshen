@@ -1,5 +1,4 @@
 #  -*- Mode: Python -*- 
-
 import os
 import sys
 import re
@@ -18,86 +17,19 @@ import threading
 import inspect
 import time
 import uuid
-# import pyximport; pyximport.install()
-# from tail_recursive import *
 
-# tail_call=apply
+################################################################################
+################################   ENVIRONMENT   ###############################
+################################################################################
+
+sys.setrecursionlimit(10000)
+
 FUNCTIONS = dict()
+FUNARITIES = dict()
 VARS = dict()
 SYMS = ['!', '}', '{', '-->', '<--', '&&', ':', ';', ':-', ':=', '_', '*language*', '*implementation*', '*stinput*', '*home-directory*', '*version*', '*maximum-print-sequence-size*', '*macros*', '*os*', '*release*', '*property-vector*', '@v', '@p', '@s', '*port*', '*porters*', '<-', '->', '<e>', '==', '=', '>=', '>', '/.', '=!', '$', '-', '/', '*', '+', '<=', '<', '>>', '==>', 'y-or-n?', 'write-to-file', 'where', 'when', 'warn', 'version', 'verified', 'variable?', 'value', 'vector->', '<-vector', 'vector', 'vector?', 'unspecialise', 'untrack', 'unit', 'shen.unix', 'union', 'unify', 'unify!', 'unprofile', 'undefmacro', 'return', 'type', 'tuple?', "false", 'trap-error', 'track', 'time', 'thaw', 'tc?', 'tc', 'tl', 'tlstr', 'tlv', 'tail', 'systemf', 'synonyms', 'symbol', 'symbol?', 'string->symbol', 'subst', 'string?', 'string->n', 'stream', 'string', 'stinput', 'stoutput', 'step', 'spy', 'specialise', 'snd', 'simple-error', 'set', 'save', 'str', 'run', 'reverse', 'remove', 'read', 'read-file', 'read-file-as-bytelist', 'read-file-as-string', 'read-byte', 'read-from-string', 'quit', 'put', 'preclude', 'preclude-all-but', 'ps', 'prolog?', 'protect', 'profile-results', 'profile', 'print', 'pr', 'pos', 'package', 'output', 'out', 'or', 'open', 'occurrences', 'occurs-check', 'n->string', 'number?', 'number', 'null', 'nth', 'not', 'nl', 'mode', 'macro', 'macroexpand', 'maxinferences', 'mapcan', 'map', 'make-string', 'load', 'loaded', 'list', 'lineread', 'limit', 'length', 'let', 'lazy', 'lambda', 'is', 'intersection', 'inferences', 'intern', 'integer?', 'input', 'input+', 'include', 'include-all-but', 'in', 'if', 'identical', 'head', 'hd', 'hdv', 'hdstr', 'hash', 'get', 'get-time', 'gensym', 'function', 'fst', 'freeze', 'fix', 'file', 'fail', 'fail-if', 'fwhen', 'findall', "true", 'enable-type-theory', 'explode', 'external', 'exception', 'eval-kl', 'eval', 'error-to-string', 'error', 'empty?', 'element?', 'do', 'difference', 'destroy', 'defun', 'define', 'defmacro', 'defcc', 'defprolog', 'declare', 'datatype', 'cut', 'cn', 'cons?', 'cons', 'cond', 'concat', 'compile', 'cd', 'cases', 'call', 'close', 'bind', 'bound?', 'boolean?', 'boolean', 'bar!', 'assoc', 'arity', 'append', 'and', 'adjoin', '<-address', 'address->', 'absvector?', 'absvector', 'abort', "super", "exists"]
 SYMDIC = dict()
 SYMDIC_MODE = False
-
-class SException(Exception):
-    pass
-
-def tail_call(fun, args):
-    global tramp_fn, tramp_args
-    tramp_fn, tramp_args = fun, args
-    # return None#[tramp_fn, tramp_args]
-
-def tco_apply(fun, args, glob=globals()):
-    global tramp_fn, tramp_args, FUNCTIONS
-    count = 0
-    while fun != None:
-        tramp_fn = None
-        if isa(fun, Sym):
-            fun = shen_get_fun(fun.sym)
-        try:
-            arity = fun.arity
-        except AttributeError, e:
-            arity = len(inspect.getargspec(fun).args)
-            fun.arity = arity
-        # if type(fun) == functools.partial:
-            # arity = fun.arity
-        # else:
-            # arity = 
-        argsize = len(args)
-        # print fun, arity, argsize,
-        if arity == argsize or arity == 0:
-            # print "ONE"
-            # result = apply(fun, args)
-            result = apply(fun, args)
-        elif arity > argsize:
-            # print "TWO", argsize
-            result = functools.partial(fun, *args)
-            result.arity = arity - argsize
-            # print "PARTIAL", result.func, result.args
-            # raise SException("not handled yet")
-        else:
-            raise SException("not handled yet")
-        if tramp_fn:
-            args = tramp_args
-            tramp_args = None
-            fun = tramp_fn
-        else:
-            fun = None
-        count += 1
-    return result
-
-
-def tail_recursion(func):
-    return func
-
-
-isa = isinstance
-fix = ast.fix_missing_locations
-sys.setrecursionlimit(10000)
-
-def ast_expr(val):
-    return val
-
-def pystr(s):
-    matcher = re.compile("[a-zA-Z0-9_]")
-    news = ""
-    for ch in s:
-        if ch == ".":
-            news += "_"
-        elif not matcher.match(ch):
-            news += "x%d" %ord(ch)
-        else:
-            news += ch
-    return news
 
 class Singleton:
     """ A python singleton """
@@ -136,6 +68,17 @@ class Sym(ast.Name):
     lineno = 1
     def __init__(self, sym):
         # sym = sym.replace("-", "_").replace(".", "x").replace(">", "_").replace("<", "_").replace("?", "_P").replace("*", "_")
+        def pystr(s):
+            matcher = re.compile("[a-zA-Z0-9_]")
+            news = ""
+            for ch in s:
+                if ch == ".":
+                    news += "_"
+                elif not matcher.match(ch):
+                    news += "x%d" %ord(ch)
+                else:
+                    news += ch
+            return news
         self.sym = intern(sym)
         if self.sym in SYMS:
             self.ssym = "kl_" + pystr(self.sym)
@@ -150,7 +93,7 @@ class Sym(ast.Name):
             raise SException("variable " + self.sym + " has no value")
         return self.value
     def __eq__(self, other):
-        return (other is self) or (isa(other, Sym) and self.sym == other.sym)
+        return (other is self) or (isinstance(other, Sym) and self.sym == other.sym)
     def hashcode(self):
         h = 0
         for c in self.sym:
@@ -191,6 +134,314 @@ class SymFalse(Sym, Singleton):
 
 ShenTrue = Sym("true")
 ShenFalse = Sym("false")
+
+class SException(Exception):
+    pass
+
+
+################################################################################
+################################   PRIMITIVES   ################################
+################################################################################
+
+def tail_call(fun, args):
+    global tramp_fn, tramp_args
+    tramp_fn, tramp_args = fun, args
+    # return None#[tramp_fn, tramp_args]
+
+def tco_apply(fun, args, glob=globals()):
+    global tramp_fn, tramp_args, FUNCTIONS, FUNARITIES
+    while fun != None:
+        tramp_fn = None
+        if fun.__class__ == Sym:
+            fun = shen_get_fun(fun.sym)
+        try:
+            arity = fun.arity
+        except AttributeError, e:
+            # print FUNARITIES
+            # arity = FUNARITIES[fun]
+            arity = len(inspect.getargspec(fun).args)
+            fun.arity = arity
+        argsize = len(args)
+        if arity == argsize or arity == 0:
+            result = apply(fun, args)
+        elif arity > argsize:
+            result = functools.partial(fun, *args)
+            result.arity = arity - argsize
+        else:
+            raise SException("not handled yet")
+        if tramp_fn:
+            args = tramp_args
+            tramp_args = None
+            fun = tramp_fn
+        else:
+            fun = None
+    return result
+
+def tail_recursion(func):
+    return func
+
+def shen_cons_str(f):
+    if isinstance(f, list):
+        return '(' + " ".join([shen_cons_str(x) for x in f]) + ")"
+    else:
+        return str(f)
+
+def shen_to_cons(array):
+    if len(array) == 0:
+        return []
+    else:
+        index = len(array) - 1
+        head = [array[index], []]
+        index = index - 1
+        while index >= 0:
+            head = [array[index], head]
+            index -= 1
+        return head
+
+def shen_cons_iter(cons):
+    cell = cons
+    while not cell == []:
+        yield car(cell)
+        cell = cdr(cell)
+
+def car(cons):
+    return [] if cons == [] else cons[0]
+
+def cdr(cons):
+    if cons.__class__ is list:
+        return [] if (cons == [] or len(cons) < 2) else cons[1]
+    else:
+        raise SException("%s is not a list" %str(cons))
+
+def cons_nth(n, lst):
+    return cons_nth(n - 1, cdr(lst)) if n > 0 else car(lst)
+
+def cons_length(lst, count=0):
+    tl = cdr(lst)
+    if tl.__class__ is list and tl != []:
+        return 1 + cons_length(tl)
+    elif tl == []:
+        return 1
+    else:
+        return 2
+    # return cons_length(cdr(lst), count + 1) if lst else count
+
+def shen_simple_error(msg):
+    raise SException(msg)
+
+def shen_try_except(success, failure):
+    try:
+        return success()
+    except SException, e:
+        return failure(e)
+
+class AbsVector(numpy.ndarray):
+    # def __init__(self, n):
+        # numpy.ndarray.__init__(self, shape=n, dtype=object)
+    def __eq__(self, other):
+        if other.__class__ != AbsVector:
+            return False
+        if self is other:
+            return True
+        if len(self) != len(other):
+            return False
+        return numpy.equal(self, other).all()
+
+def shen_absvector(n):
+    if not isinstance(n, int):
+        raise SException("%s is not a number" %str(n))
+    if n < 0:
+        raise SException("%d must be >= 0" %n)
+    # vec = [Sym("shen.fail!")] * (n + 1)
+    vec = AbsVector(n + 1, dtype=object)
+    vec[:] = Sym("shen.fail!")
+    return vec
+
+def shen_absvector_set(vec, n, value):
+    if not isinstance(vec, AbsVector):
+        raise SException("%s is not a vector" %str(vec))
+    if not isinstance(n, int):
+        raise SException("%s is not a number" %str(n))
+    if n < 0 or n >= len(vec):
+        raise SException("%d out of bound" %n)
+    vec[n] = value
+    return vec
+
+def shen_absvector_get(vec, n):
+    # print "GET", vec, n, vec[n]
+    if not isinstance(vec, AbsVector):
+        raise SException("%s is not a vector" %str(vec))
+    if not isinstance(n, int):
+        raise SException("%s is not a number" %str(n))
+    if n < 0 or n >= len(vec):
+        raise SException("%d out of bound" %n)
+    return vec[n]
+
+def shen_absvectorp(vec):
+    # return isinstance(vec, list)
+    return isinstance(vec, AbsVector)
+
+def shen_pr(s, stream):
+    if stream == sys.stdin:
+        stream = sys.stdout
+    stream.write(s)
+    return s
+
+def shen_read_byte(stream):
+    rd = stream.read(1)
+    return ord(rd) if len(rd) > 0 else -1
+
+def shen_open(stream_type, name, direction):
+    # print "Opening", stream_type, name, direction, type(direction)
+    if not stream_type.sym == "file":
+        raise SException("unsupported stream type")
+    return open(name, "w" if direction.sym == "out" else "r")
+
+def shen_close(stream):
+    stream.close()
+
+def shen_get_time(mode):
+    if mode.sym == "run":
+        return time.time()
+    elif mode.sym == "real":
+        return time.time()
+    else:
+        raise SException("unsupported get-time mode %s" %mode.sym)
+
+def shen_intern(s):
+    return Sym(s)
+
+def shen_consp(exp):
+    if exp.__class__ is list and len(exp) > 0:
+        return True
+    return False
+
+def pyshen_set(s, value):
+    s.value = value
+    return v
+
+def set_local(s, value):
+    # print sys._getframe(1).f_locals, sys._getframe(1).f_locals[s]
+    sys._getframe(1).f_locals[s] = value
+    return value
+
+def get_local(s):
+    return sys._getframe(1).f_locals[s]
+
+def shen_set(sym, value):
+    global VARS
+    VARS[sym.sym] = value
+    return value
+
+def shen_get(sym):
+    global VARS
+    try:
+        return VARS[sym.sym]
+    except Exception, e:
+        raise SException(e.message)
+
+def shen_apply(sym, args, glob=globals()):
+    global FUNCTIONS
+    if isinstance(sym, Sym):
+        return tco_apply(shen_get_fun(sym.sym), args, glob)
+    else:
+        return tco_apply(sym, args, glob)
+
+def shen_add_fun(name, fun, arity=None, glob=globals()):
+    global FUNCTIONS, FUNARITIES
+    FUNCTIONS[intern(name)] = fun
+    if not arity is None:
+        fun.arity = arity
+        FUNARITIES[fun] = arity
+    return Sym(name)
+
+def shen_get_fun(name):
+    global FUNCTIONS
+    try:
+        return FUNCTIONS[name]
+    except Exception, e:
+        raise SException(e.message)
+
+def shen_compile(form, rvalue=False):
+    env = ShenEnv()
+    code = env.compile_shen(form)
+    # print ast.dump(code)
+    module = ast.Module(body=[])
+    if isinstance(code, list):
+        for line in code:
+            module.body.append(line)
+    else:
+        module.body.append(code)
+    ShenVisitorLocals().visit(module)
+    ShenVisitorUnlambda().visit(module)
+    ShenVisitorApply().visit(module)
+    ShenVisitor().visit(module)
+    if rvalue:
+        if not isinstance(module.body[-1], ast.FunctionDef):
+            last = module.body[-1]
+            module.body[-1] = ast.Assign(targets=[ast.Name(id="result", ctx=ast.Store())],
+                                       value=last)
+    fix(module)
+    # print ast.dump(module,include_attributes=True)
+    return module
+
+def shen_eval_kl(form, glob=globals()):
+    global tramp_fn, tramp_args
+    # print "Initial form", form
+    code = shen_compile(form, True)
+    # io = StringIO.StringIO()
+    # unparse.Unparser(code, io)
+    # io.write("\n")
+    # print "IO", io.getvalue()#, glob.keys()
+    tramp_fn = None
+    bcode = compile(code, "<string>", "exec")
+    try:
+        exec(bcode, glob)#, ldict)
+    except Exception, e:
+        io = StringIO.StringIO()
+        unparse.Unparser(code, io)
+        io.write("\n")
+        print "Error ", e.message, io.getvalue()
+        raise e
+    # print ldict
+    if tramp_fn != None:
+        fun = tramp_fn
+        args = tramp_args
+        tramp_fn, tramp_args = None, None
+        return shen_apply(fun, args, glob)
+    else:
+        # print "Returning", ldict['result']
+        return glob['result']
+
+def shen_add(x, y): return x + y
+def shen_sub(x, y): return x - y
+def shen_mul(x, y): return x * y
+def shen_div(x, y): return x / y
+
+def shen_abseq(x, y):
+    if shen_absvectorp(x) and shen_absvectorp(y):
+        return numpy.equal(x, y).all()
+    else:
+        return x == y
+
+def shen_eq(x, y):
+    return x == y
+
+def shen_gt(x, y): return x > y
+def shen_lt(x, y): return x < y
+def shen_gte(x, y): return x >= y
+def shen_lte(x, y): return x <= y
+def shen_or(x, y): return x or y
+def shen_and(x, y): return x and y
+
+################################################################################
+################################   PARSER   ####################################
+################################################################################
+
+fix = ast.fix_missing_locations
+
+def ast_expr(val):
+    return val
 
 class Lexer:
     SYMBOL_CHARS = "[-=*\/+_?$!\@~><&%'#`;:{}a-zA-Z0-9.]"
@@ -369,10 +620,10 @@ def shen_reader(stream):
             # print token
             if token == None:
                 raise SException("unterminated list")
-            if isa(token, Lexer.OpenPar):
+            if isinstance(token, Lexer.OpenPar):
                 items = []
                 stack.append(items)
-            elif isa(token, Lexer.ClosePar):
+            elif isinstance(token, Lexer.ClosePar):
                 lst = shen_to_cons(stack.pop())
                 # print "LIST          +++", lst
                 if len(stack) > 0:
@@ -384,240 +635,16 @@ def shen_reader(stream):
     while True:
         token = lexer.next()
         if token != None:
-            if isa(token, Lexer.OpenPar):
+            if isinstance(token, Lexer.OpenPar):
                 yield read_list()
             else:
                 yield token
         else:
             break
 
-def shen_cons_str(f):
-    if isa(f, list):
-        return '(' + " ".join([shen_cons_str(x) for x in f]) + ")"
-    else:
-        return str(f)
-
-def shen_to_cons(array):
-    if len(array) == 0:
-        return []
-    else:
-        index = len(array) - 1
-        head = [array[index], []]
-        index = index - 1
-        while index >= 0:
-            head = [array[index], head]
-            index -= 1
-        return head
-
-def shen_cons_iter(cons):
-    cell = cons
-    while not cell == []:
-        yield car(cell)
-        cell = cdr(cell)
-
-def car(cons):
-    return [] if cons == [] else cons[0]
-
-def cdr(cons):
-    if isa(cons, list):
-        return [] if (cons == [] or len(cons) < 2) else cons[1]
-    else:
-        raise SException("%s is not a list" %str(cons))
-
-def cons_nth(n, lst):
-    return cons_nth(n - 1, cdr(lst)) if n > 0 else car(lst)
-
-def cons_length(lst, count=0):
-    tl = cdr(lst)
-    if isa(tl, list) and tl != []:
-        return 1 + cons_length(tl)
-    elif tl == []:
-        return 1
-    else:
-        return 2
-    # return cons_length(cdr(lst), count + 1) if lst else count
-
-def shen_simple_error(msg):
-    raise SException(msg)
-
-def shen_try_except(success, failure):
-    try:
-        return success()
-    except SException, e:
-        return failure(e)
-
-class AbsVector(numpy.ndarray):
-    # def __init__(self, n):
-        # numpy.ndarray.__init__(self, shape=n, dtype=object)
-    def __eq__(self, other):
-        # print "eq", self, other
-        if isinstance(other, AbsVector):
-            return False
-        return False
-
-def shen_absvector(n):
-    if not isinstance(n, int):
-        raise SException("%s is not a number" %str(n))
-    if n < 0:
-        raise SException("%d must be >= 0" %n)
-    # vec = [Sym("shen.fail!")] * (n + 1)
-    vec = AbsVector(n + 1, dtype=object)
-    vec[:] = Sym("shen.fail!")
-    return vec
-
-def shen_absvector_set(vec, n, value):
-    if not isinstance(vec, AbsVector):
-        raise SException("%s is not a vector" %str(vec))
-    if not isinstance(n, int):
-        raise SException("%s is not a number" %str(n))
-    if n < 0 or n >= len(vec):
-        raise SException("%d out of bound" %n)
-    vec[n] = value
-    return vec
-
-def shen_absvector_get(vec, n):
-    # print "GET", vec, n, vec[n]
-    if not isinstance(vec, AbsVector):
-        raise SException("%s is not a vector" %str(vec))
-    if not isinstance(n, int):
-        raise SException("%s is not a number" %str(n))
-    if n < 0 or n >= len(vec):
-        raise SException("%d out of bound" %n)
-    return vec[n]
-
-def shen_absvectorp(vec):
-    # return isinstance(vec, list)
-    return isinstance(vec, AbsVector)
-
-def shen_pr(s, stream):
-    if stream == sys.stdin:
-        stream = sys.stdout
-    stream.write(s)
-    return s
-
-def shen_read_byte(stream):
-    rd = stream.read(1)
-    return ord(rd) if len(rd) > 0 else -1
-
-def shen_open(stream_type, name, direction):
-    # print "Opening", stream_type, name, direction, type(direction)
-    if not stream_type.sym == "file":
-        raise SException("unsupported stream type")
-    return open(name, "w" if direction.sym == "out" else "r")
-
-def shen_close(stream):
-    stream.close()
-
-def shen_get_time(mode):
-    if mode.sym == "run":
-        return time.time()
-    elif mode.sym == "real":
-        return time.time()
-    else:
-        raise SException("unsupported get-time mode %s" %mode.sym)
-
-def shen_intern(s):
-    return Sym(s)
-
-def shen_consp(exp):
-    if isinstance(exp, list) and len(exp) > 0:
-        return True
-    return False
-
-def pyshen_set(s, value):
-    print "Setting", s, value
-    s.value = value
-    return v
-
-def set_local(s, value):
-    # print sys._getframe(1).f_locals, sys._getframe(1).f_locals[s]
-    sys._getframe(1).f_locals[s] = value
-    return value
-
-def get_local(s):
-    return sys._getframe(1).f_locals[s]
-
-def shen_set(sym, value):
-    global VARS
-    VARS[sym.sym] = value
-    return value
-
-def shen_get(sym):
-    global VARS
-    try:
-        return VARS[sym.sym]
-    except Exception, e:
-        raise SException(e.message)
-
-def shen_apply(sym, args, glob=globals()):
-    global FUNCTIONS
-    if isa(sym, Sym):
-        return tco_apply(shen_get_fun(sym.sym), args, glob)
-    else:
-        return tco_apply(sym, args, glob)
-
-def shen_add_fun(name, fun, glob=globals()):
-    global FUNCTIONS
-    FUNCTIONS[intern(name)] = fun
-    return Sym(name)
-
-def shen_get_fun(name):
-    global FUNCTIONS
-    try:
-        return FUNCTIONS[name]
-    except Exception, e:
-        raise SException(e.message)
-
-def shen_compile(form, rvalue=False):
-    env = ShenEnv()
-    code = env.compile_shen(form)
-    # print ast.dump(code)
-    module = ast.Module(body=[])
-    if isinstance(code, list):
-        for line in code:
-            module.body.append(line)
-    else:
-        module.body.append(code)
-    ShenVisitorLocals().visit(module)
-    ShenVisitorUnlambda().visit(module)
-    ShenVisitorApply().visit(module)
-    ShenVisitor().visit(module)
-    if rvalue:
-        if not isa(module.body[-1], ast.FunctionDef):
-            last = module.body[-1]
-            module.body[-1] = ast.Assign(targets=[ast.Name(id="result", ctx=ast.Store())],
-                                       value=last)
-    fix(module)
-    # print ast.dump(module,include_attributes=True)
-    return module
-
-def shen_eval_kl(form, glob=globals()):
-    global tramp_fn, tramp_args
-    # print "Initial form", form
-    code = shen_compile(form, True)
-    # io = StringIO.StringIO()
-    # unparse.Unparser(code, io)
-    # io.write("\n")
-    # print "IO", io.getvalue()#, glob.keys()
-    tramp_fn = None
-    bcode = compile(code, "<string>", "exec")
-    try:
-        exec(bcode, glob)#, ldict)
-    except Exception, e:
-        io = StringIO.StringIO()
-        unparse.Unparser(code, io)
-        io.write("\n")
-        print "Error ", e.message, io.getvalue()
-        raise e
-    # print ldict
-    if tramp_fn != None:
-        fun = tramp_fn
-        args = tramp_args
-        tramp_fn, tramp_args = None, None
-        return shen_apply(fun, args, glob)
-    else:
-        # print "Returning", ldict['result']
-        return glob['result']
+################################################################################
+################################   COMPILER   ##################################
+################################################################################
 
 class ShenVisitorUnlambda(ast.NodeTransformer):
     localfuns = []
@@ -626,9 +653,9 @@ class ShenVisitorUnlambda(ast.NodeTransformer):
         self.count += 1
         return "fun_%d" %self.count
     def visit_Call(self, node):
-        # if node.func.id=="apply" and isa(node.args[0], ast.Lambda):
+        # if node.func.id=="apply" and isinstance(node.args[0], ast.Lambda):
         #     self.generic_visit(node)
-        #     if not isa(node.args[0], ast.FunctionDef):
+        #     if not isinstance(node.args[0], ast.FunctionDef):
         #         raise SException("ast transforamtion failed " + node.args)
         #     fun = node.args[0]
         #     node.args[0] = ast.Name(id=fun.name, ctx=ast.Load())
@@ -642,7 +669,7 @@ class ShenVisitorUnlambda(ast.NodeTransformer):
     #     body = []
     #     for fun in self.localfuns:
     #         body.append(fun)
-    #     if isa(node.body, list):
+    #     if isinstance(node.body, list):
     #         body += node.body
     #     else:
     #         body.append(node.body)
@@ -677,12 +704,12 @@ class ShenVisitorApply(ast.NodeTransformer):
     def visit_Call(self, node):
         # print ast.dump(node)
         self.generic_visit(node)
-        if isa(node.func, ast.Name) and (node.func.id=="apply" or node.func.id == "tail_call" or node.func.id == "tco_apply") and isa(node.args[0], Sym):
+        if isinstance(node.func, ast.Name) and (node.func.id=="apply" or node.func.id == "tail_call" or node.func.id == "tco_apply") and isinstance(node.args[0], Sym):
             # print node
             fun = node.args[0]
             node.args[0] = ast.Name(id=fun.slug(), ctx=ast.Load())
             return node
-        elif isa(node.func, ast.Name) and (node.func.id=="apply" or node.func.id == "tail_call" or node.func.id == "tco_apply") and isa(node.args[0], ast.Name) and node.args[0].id.startswith("KL_"):
+        elif isinstance(node.func, ast.Name) and (node.func.id=="apply" or node.func.id == "tail_call" or node.func.id == "tco_apply") and isinstance(node.args[0], ast.Name) and node.args[0].id.startswith("KL_"):
             # print node
             node.func.id = "shen_apply"
             return node
@@ -703,11 +730,11 @@ class ShenVisitorApply(ast.NodeTransformer):
 class ShenVisitorLocals(ast.NodeTransformer):
     localvars = []
     def visit_Name(self, node):
-        if isa(node.ctx, ast.Store):
+        if isinstance(node.ctx, ast.Store):
             self.localvars.append(node)
         return node
     def visit_Call(self, node):
-        if isa(node.func, ast.Name) and node.func.id=="setattr" and len(node.args) == 3 and isa(node.args[0], ast.Name) and node.args[0].id == "KL_CTX":
+        if isinstance(node.func, ast.Name) and node.func.id=="setattr" and len(node.args) == 3 and isinstance(node.args[0], ast.Name) and node.args[0].id == "KL_CTX":
             self.localvars.append(ast.Name(id=node.args[1].s, ctx=ast.Store()))
         self.generic_visit(node)
         return node
@@ -751,32 +778,6 @@ class ShenVisitor(ast.NodeTransformer):
     def visit_Sym(self, node):
         return node.nodeSym()
 
-def shen_add(x, y): return float(x) + float(y)
-def shen_sub(x, y): return float(x) - float(y)
-def shen_mul(x, y): return float(x) * float(y)
-def shen_div(x, y): return float(x) / float(y)
-
-
-def shen_abseq(x, y):
-    if shen_consp(x) and shen_consp(y) and shen_abseq(car(x), car(y)):
-        return shen_abseq(cdr(x), cdr(y))
-    elif isinstance(x, str) and isinstance(y, str):
-        return x == y
-    elif isinstance(x, numbers.Number) and isinstance(y, numbers.Number):
-        return x == y
-    elif shen_absvectorp(x) and shen_absvectorp(y):
-        return numpy.equal(x, y).all()
-    else:
-        return x == y
-
-def shen_eq(x, y): return shen_abseq(x, y)
-
-def shen_gt(x, y): return x > y
-def shen_lt(x, y): return x < y
-def shen_gte(x, y): return x >= y
-def shen_lte(x, y): return x <= y
-def shen_or(x, y): return x or y
-def shen_and(x, y): return x and y
 
 class ShenEnv:
     PRIMITIVES = {
@@ -901,17 +902,17 @@ class ShenEnv:
     }
 
     def attributeNode(self, sym):
-        if isa(sym, Sym):
+        if isinstance(sym, Sym):
             return ast.Name(id=sym.slug(), ctx=ast.Load())
         else:
             return ast.Name(id=sym, ctx=ast.Load())
 
     def compile_shen(self, form, lexical_vars = {}, in_tail_pos = True, **kwargs):
-        if isa(form, SymTrue):
+        if isinstance(form, SymTrue):
             return ast.Name(id='True', ctx=ast.Load())
-        elif isa(form, SymFalse):
+        elif isinstance(form, SymFalse):
             return ast.Name(id='False', ctx=ast.Load())
-        elif isa(form, Sym):
+        elif isinstance(form, Sym):
             if form.sym == "true":
                 return ast.Name(id='True', ctx=ast.Load())
             elif form.sym == "false":
@@ -925,13 +926,13 @@ class ShenEnv:
                     return ast.Name(id=name, ctx=ast.Load())
             else:
                 return form
-        elif isa(form, str):
+        elif isinstance(form, str):
             return ast.Str(form)
         elif form == []:
             return ast.parse("[]", mode="eval").body
-        elif isa(form, list):
+        elif isinstance(form, list):
             return self.compile_form(form, lexical_vars, in_tail_pos, **kwargs)
-        elif isa(form, numbers.Number):
+        elif isinstance(form, numbers.Number):
             return ast.Num(form)
         else:
             raise SException("unexpected form %s" %form)
@@ -939,12 +940,12 @@ class ShenEnv:
     def compile_defun(self, form, lexical_vars):
         name, arglist, body = cons_nth(1, form), cons_nth(2, form), cons_nth(3, form)
         # print "defun", name, "ARG", arglist, "body", body
-        if not isa(name, Sym):
+        if not isinstance(name, Sym):
             raise SException(name + " is not a symbol")
-        if not (isa(arglist, list) or arglist == []):
+        if not (isinstance(arglist, list) or arglist == []):
             raise SException(name + " is not a list")
         for arg in shen_cons_iter(arglist):
-            if not isa(arg, Sym):
+            if not isinstance(arg, Sym):
                 raise SException(arg + " is not a symbol")
         # if name.sym in self.PRIMITIVES:
             # raise SException(name.sym + " is a primitive and cannot be redefined")
@@ -952,7 +953,7 @@ class ShenEnv:
         fn_name = name.slug()
         fn_args = [ast.Name(id=extended_vars[arg.sym], ctx=ast.Load()) for arg in shen_cons_iter(arglist)]
         fn_body = self.compile_shen(body, extended_vars, True)
-        if not isa(fn_body, list):
+        if not isinstance(fn_body, list):
             fn_body = [fn_body]
         fn_body.insert(0, ast.Global(["symdic"]))
         fun = ast.FunctionDef(name=fn_name, args=ast.arguments(args=fn_args, defaults=[], vararg=None, kwarg=None),
@@ -961,17 +962,18 @@ class ShenEnv:
         return [fun, ast.Call(func=ast.Name(id="shen_add_fun", ctx=ast.Load()),
                               keywords=[], starargs=None, kwargs=None,
                               args=[ast.Str(s=name.sym),
-                                    ast.Name(id=fn_name, ctx=ast.Load())])]
+                                    ast.Name(id=fn_name, ctx=ast.Load()),
+                                    ast.Num(n=len(fn_args))])]
 
     def compile_lambda(self, form, lexical_vars):
         var, body = cons_nth(1, form), cons_nth(2, form)
-        if not isa(var, Sym):
+        if not isinstance(var, Sym):
             raise SException(var + " is not a symbol")
         # print var, body, lexical_vars
         extended_vars = self.add_var(lexical_vars, var, prefix="KL_ARG")
         fn_args = ast.Name(id=extended_vars[var.sym], ctx=ast.Load())
         fn_body = self.compile_shen(body, extended_vars, True)
-        if isa(fn_body, list):
+        if isinstance(fn_body, list):
             fn_body = ast.Subscript(value=ast.List(elts=fn_body, ctx=ast.Load()),
                                     slice=ast.Index(value=ast.Num(n=-1)),
                                     ctx=ast.Load())
@@ -979,7 +981,7 @@ class ShenEnv:
 
     def compile_form(self, form, lexical_vars, in_tail_pos, **kwargs):
         hd = car(form)
-        sym = hd.sym if isa(hd, Sym) else None
+        sym = hd.sym if isinstance(hd, Sym) else None
         # print "compile_form", form, sym
         expr = None
         if sym == "defun":
@@ -1112,7 +1114,7 @@ class ShenEnv:
             return self.compile_let_lambda(form, lexical_vars, in_tail_pos)
         else:
             var, expr, body = cons_nth(1, form), cons_nth(2, form), cons_nth(3, form)
-            assert(isa(var, Sym))
+            assert(isinstance(var, Sym))
             # print"compile_let", var, expr, body, kwargs
             extended_vars = self.add_var(lexical_vars, var)
             bound_var = extended_vars[var.sym]
@@ -1124,7 +1126,7 @@ class ShenEnv:
 
     def compile_let(self, form, lexical_vars, in_tail_pos):
         var, expr, body = cons_nth(1, form), cons_nth(2, form), cons_nth(3, form)
-        assert(isa(var, Sym))
+        assert(isinstance(var, Sym))
         # print"compile_let", var, expr, body
         extended_vars = self.add_var(lexical_vars, var)
         bound_var = extended_vars[var.sym]
@@ -1141,7 +1143,7 @@ class ShenEnv:
 
     def compile_let_lambda(self, form, lexical_vars, in_tail_pos):
         var, expr, body = cons_nth(1, form), cons_nth(2, form), cons_nth(3, form)
-        assert(isa(var, Sym))
+        assert(isinstance(var, Sym))
         # print"compile_let", var, expr, body
         extended_vars = self.add_var(lexical_vars, var)
         bound_var = extended_vars[var.sym]
@@ -1156,13 +1158,13 @@ class ShenEnv:
         global SYMS
         f, args = car(form), cdr(form)
         # print "Application", form, lexical_vars, "ARGS", args, cons_length(args), in_tail_pos
-        if isa(f, Sym) and intern(f.sym) in self.PRIMITIVES and cons_length(args) == self.PRIMITIVES[f.sym][0]:
+        if isinstance(f, Sym) and intern(f.sym) in self.PRIMITIVES and cons_length(args) == self.PRIMITIVES[f.sym][0]:
             # print "PRIM", f.sym
             fargs = [self.compile_shen(arg, lexical_vars, False) for arg in shen_cons_iter(args)]
             return apply(self.PRIMITIVES[f.sym][1], fargs)
         else:
             # print "APP", f.sym
-            if isa(f, Sym) and intern(f.sym) in self.PRIMITIVES:
+            if isinstance(f, Sym) and intern(f.sym) in self.PRIMITIVES:
                 rator = self.PRIMITIVES[f.sym]
                 if len(rator) == 3:
                     rator = rator[2]
@@ -1170,10 +1172,10 @@ class ShenEnv:
                     raise SException("primitive %s not available on partial" %f.sym)
             else:
                 rator = self.compile_shen(f, lexical_vars, False)
-            # if isa(rator, Sym):
+            # if isinstance(rator, Sym):
                 # rator = rator.nodeSym()
             rands = [self.compile_shen(arg, lexical_vars, False) for arg in shen_cons_iter(args)]
-            if isa(rator, Sym) and rator.sym in ["declare"]:
+            if isinstance(rator, Sym) and rator.sym in ["declare"]:
                 return ast.Call(func=ast.Name(id="apply", ctx=ast.Load()),
                                 keywords=[], starargs=None, kwargs=None,
                                 args=[rator, ast.List(elts=rands, ctx=ast.Load())])
@@ -1218,8 +1220,8 @@ class ShenEnv:
         #     print "Compiling", shen_cons_str(form)
         #     print "-----"
         code = self.compile_shen(form, {}, True)
-        if not isa(code, ast.Str):
-            if not isa(code, list):
+        if not isinstance(code, ast.Str):
+            if not isinstance(code, list):
                 code = [code]
             for c in code:
                 ShenVisitorLocals().visit(c)
@@ -1292,10 +1294,10 @@ def compile_pyshen():
         # unparse.Unparser(module, fpo)
         fp.close()
         for code in codes:
-            if isa(code, ast.Call) and code.func.id == "apply":
+            if isinstance(code, ast.Call) and code.func.id == "apply":
                 shen_postdecls.append(ast.Expr(code))
                 # print ast.dump(code), code.func
-            elif not isa(code, ast.FunctionDef) :
+            elif not isinstance(code, ast.FunctionDef) :
                 shen_body.append(ast.Expr(code))
             else:
                 shen_body.append(code)
@@ -1318,7 +1320,6 @@ def compile_pyshen():
     fpo.close()
     SYMDIC_MODE = False
 
-# import pyximport; pyximport.install()
 from shen import *
 
 def pyshen():

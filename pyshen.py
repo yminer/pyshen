@@ -27,9 +27,20 @@ sys.setrecursionlimit(10000)
 FUNCTIONS = dict()
 FUNARITIES = dict()
 VARS = dict()
-SYMS = ['!', '}', '{', '-->', '<--', '&&', ':', ';', ':-', ':=', '_', '*language*', '*implementation*', '*stinput*', '*home-directory*', '*version*', '*maximum-print-sequence-size*', '*macros*', '*os*', '*release*', '*property-vector*', '@v', '@p', '@s', '*port*', '*porters*', '<-', '->', '<e>', '==', '=', '>=', '>', '/.', '=!', '$', '-', '/', '*', '+', '<=', '<', '>>', '==>', 'y-or-n?', 'write-to-file', 'where', 'when', 'warn', 'version', 'verified', 'variable?', 'value', 'vector->', '<-vector', 'vector', 'vector?', 'unspecialise', 'untrack', 'unit', 'shen.unix', 'union', 'unify', 'unify!', 'unprofile', 'undefmacro', 'return', 'type', 'tuple?', "false", 'trap-error', 'track', 'time', 'thaw', 'tc?', 'tc', 'tl', 'tlstr', 'tlv', 'tail', 'systemf', 'synonyms', 'symbol', 'symbol?', 'string->symbol', 'subst', 'string?', 'string->n', 'stream', 'string', 'stinput', 'stoutput', 'step', 'spy', 'specialise', 'snd', 'simple-error', 'set', 'save', 'str', 'run', 'reverse', 'remove', 'read', 'read-file', 'read-file-as-bytelist', 'read-file-as-string', 'read-byte', 'read-from-string', 'quit', 'put', 'preclude', 'preclude-all-but', 'ps', 'prolog?', 'protect', 'profile-results', 'profile', 'print', 'pr', 'pos', 'package', 'output', 'out', 'or', 'open', 'occurrences', 'occurs-check', 'n->string', 'number?', 'number', 'null', 'nth', 'not', 'nl', 'mode', 'macro', 'macroexpand', 'maxinferences', 'mapcan', 'map', 'make-string', 'load', 'loaded', 'list', 'lineread', 'limit', 'length', 'let', 'lazy', 'lambda', 'is', 'intersection', 'inferences', 'intern', 'integer?', 'input', 'input+', 'include', 'include-all-but', 'in', 'if', 'identical', 'head', 'hd', 'hdv', 'hdstr', 'hash', 'get', 'get-time', 'gensym', 'function', 'fst', 'freeze', 'fix', 'file', 'fail', 'fail-if', 'fwhen', 'findall', "true", 'enable-type-theory', 'explode', 'external', 'exception', 'eval-kl', 'eval', 'error-to-string', 'error', 'empty?', 'element?', 'do', 'difference', 'destroy', 'defun', 'define', 'defmacro', 'defcc', 'defprolog', 'declare', 'datatype', 'cut', 'cn', 'cons?', 'cons', 'cond', 'concat', 'compile', 'cd', 'cases', 'call', 'close', 'bind', 'bound?', 'boolean?', 'boolean', 'bar!', 'assoc', 'arity', 'append', 'and', 'adjoin', '<-address', 'address->', 'absvector?', 'absvector', 'abort', "super", "exists"]
+SYMS = ['!', '}', '{', '-->', '<--', '&&', ':', ';', ':-', ':=', '_', '*language*', '*implementation*', '*stinput*', '*home-directory*', '*version*', '*maximum-print-sequence-size*', '*macros*', '*os*', '*release*', '*property-vector*', '@v', '@p', '@s', '*port*', '*porters*', '<-', '->', '<e>', '==', '=', '>=', '>', '/.', '=!', '$', '-', '/', '*', '+', '<=', '<', '>>', '==>', 'y-or-n?', 'write-to-file', 'where', 'when', 'warn', 'version', 'verified', 'variable?', 'value', 'vector->', '<-vector', 'vector', 'vector?', 'unspecialise', 'untrack', 'unit', 'shen.unix', 'union', 'unify', 'unify!', 'unprofile', 'undefmacro', 'return', 'type', 'tuple?', "false", 'trap-error', 'track', 'time', 'thaw', 'tc?', 'tc', 'tl', 'tlstr', 'tlv', 'tail', 'systemf', 'synonyms', 'symbol', 'symbol?', 'string->symbol', 'subst', 'string?', 'string->n', 'stream', 'string', 'stinput', 'stoutput', 'step', 'spy', 'specialise', 'snd', 'simple-error', 'set', 'save', 'str', 'run', 'reverse', 'remove', 'read', 'read-file', 'read-file-as-bytelist', 'read-file-as-string', 'read-byte', 'read-from-string', 'quit', 'put', 'preclude', 'preclude-all-but', 'ps', 'prolog?', 'protect', 'profile-results', 'profile', 'print', 'pr', 'pos', 'package', 'output', 'out', 'or', 'open', 'occurrences', 'occurs-check', 'n->string', 'number?', 'number', 'null', 'nth', 'not', 'nl', 'mode', 'macro', 'macroexpand', 'maxinferences', 'mapcan', 'map', 'make-string', 'load', 'loaded', 'list', 'lineread', 'limit', 'length', 'let', 'lazy', 'lambda', 'is', 'intersection', 'inferences', 'intern', 'integer?', 'input', 'input+', 'include', 'include-all-but', 'in', 'if', 'identical', 'head', 'hd', 'hdv', 'hdstr', 'hash', 'get', 'get-time', 'gensym', 'function', 'fst', 'freeze', 'fix', 'file', 'fail', 'fail-if', 'fwhen', 'findall', "true", 'enable-type-theory', 'explode', 'external', 'exception', 'eval-kl', 'eval', 'error-to-string', 'error', 'empty?', 'element?', 'do', 'difference', 'destroy', 'defun', 'define', 'defmacro', 'defcc', 'defprolog', 'declare', 'datatype', 'cut', 'cn', 'cons?', 'cons', 'cond', 'concat', 'compile', 'cd', 'cases', 'call', 'close', 'bind', 'bound?', 'boolean?', 'boolean', 'bar!', 'assoc', 'arity', 'append', 'and', 'adjoin', '<-address', 'address->', 'absvector?', 'absvector', 'abort', "super", "exists", "assert", "for", "while"]
 SYMDIC = dict()
 SYMDIC_MODE = False
+
+class PartialDecorator:
+    def __init__(self, arity):
+        self.arity = arity
+
+    def __call__(self, func):
+        def partial_wrapper(*FUN_ARGS):
+            if len(FUN_ARGS) < self.arity:
+                return lambda *args: apply(partial_wrapper, FUN_ARGS + args)
+            return apply(func, FUN_ARGS)
+        return partial_wrapper
 
 class Singleton:
     """ A python singleton """
@@ -149,26 +160,27 @@ def tail_call(fun, args):
     # return None#[tramp_fn, tramp_args]
 
 def tco_apply(fun, args, glob=globals()):
-    global tramp_fn, tramp_args, FUNCTIONS, FUNARITIES
+    global tramp_fn, tramp_args
     while fun != None:
         tramp_fn = None
         if fun.__class__ == Sym:
             fun = shen_get_fun(fun.sym)
-        try:
-            arity = fun.arity
-        except AttributeError, e:
-            # print FUNARITIES
-            # arity = FUNARITIES[fun]
-            arity = len(inspect.getargspec(fun).args)
-            fun.arity = arity
-        argsize = len(args)
-        if arity == argsize or arity == 0:
-            result = apply(fun, args)
-        elif arity > argsize:
-            result = functools.partial(fun, *args)
-            result.arity = arity - argsize
-        else:
-            raise SException("not handled yet")
+        result = apply(fun, args)
+        # try:
+        #     arity = fun.arity
+        # except AttributeError, e:
+        #     # print FUNARITIES
+        #     # arity = FUNARITIES[fun]
+        #     arity = len(inspect.getargspec(fun).args)
+        #     fun.arity = arity
+        # argsize = len(args)
+        # if arity == argsize or arity == 0:
+        #     result = apply(fun, args)
+        # elif arity > argsize:
+        #     result = functools.partial(fun, *args)
+        #     result.arity = arity - argsize
+        # else:
+        #     raise SException("not handled yet")
         if tramp_fn:
             args = tramp_args
             tramp_args = None
@@ -328,6 +340,7 @@ def set_local(s, value):
 def get_local(s):
     return sys._getframe(1).f_locals[s]
 
+@PartialDecorator(2)
 def shen_set(sym, value):
     global VARS
     VARS[sym.sym] = value
@@ -350,9 +363,6 @@ def shen_apply(sym, args, glob=globals()):
 def shen_add_fun(name, fun, arity=None, glob=globals()):
     global FUNCTIONS, FUNARITIES
     FUNCTIONS[intern(name)] = fun
-    if not arity is None:
-        fun.arity = arity
-        FUNARITIES[fun] = arity
     return Sym(name)
 
 def shen_get_fun(name):
@@ -376,6 +386,7 @@ def shen_compile(form, rvalue=False):
     ShenVisitorUnlambda().visit(module)
     ShenVisitorApply().visit(module)
     ShenVisitor().visit(module)
+    ShenVisitorPartial().visit(module)
     if rvalue:
         if not isinstance(module.body[-1], ast.FunctionDef):
             last = module.body[-1]
@@ -394,14 +405,15 @@ def shen_eval_kl(form, glob=globals()):
     # io.write("\n")
     # print "IO", io.getvalue()#, glob.keys()
     tramp_fn = None
-    bcode = compile(code, "<string>", "exec")
     try:
+        bcode = compile(code, "<string>", "exec")
         exec(bcode, glob)#, ldict)
     except Exception, e:
         io = StringIO.StringIO()
         unparse.Unparser(code, io)
         io.write("\n")
         print "Error ", e.message, io.getvalue()
+        print ast.dump(code)
         raise e
     # print ldict
     if tramp_fn != None:
@@ -413,25 +425,39 @@ def shen_eval_kl(form, glob=globals()):
         # print "Returning", ldict['result']
         return glob['result']
 
-def shen_add(x, y): return x + y
+
+@PartialDecorator(2)
+def shen_add(x, y):
+    return x + y
+@PartialDecorator(2)
 def shen_sub(x, y): return x - y
+@PartialDecorator(2)
 def shen_mul(x, y): return x * y
+@PartialDecorator(2)
 def shen_div(x, y): return x / y
 
+@PartialDecorator(2)
 def shen_abseq(x, y):
     if shen_absvectorp(x) and shen_absvectorp(y):
         return numpy.equal(x, y).all()
     else:
         return x == y
 
+@PartialDecorator(2)
 def shen_eq(x, y):
     return x == y
 
+@PartialDecorator(2)
 def shen_gt(x, y): return x > y
+@PartialDecorator(2)
 def shen_lt(x, y): return x < y
+@PartialDecorator(2)
 def shen_gte(x, y): return x >= y
+@PartialDecorator(2)
 def shen_lte(x, y): return x <= y
+@PartialDecorator(2)
 def shen_or(x, y): return x or y
+@PartialDecorator(2)
 def shen_and(x, y): return x and y
 
 ################################################################################
@@ -645,6 +671,49 @@ def shen_reader(stream):
 ################################################################################
 ################################   COMPILER   ##################################
 ################################################################################
+
+class ShenVisitorPartial(ast.NodeTransformer):
+    # def visit_Lambda(self, node):
+    #     saved = self.localfuns
+    #     self.localfuns = []
+    #     self.generic_visit(node)
+    #     body = []
+    #     for fun in self.localfuns:
+    #         body.append(fun)
+    #     if isinstance(node.body, list):
+    #         body += node.body
+    #     else:
+    #         body.append(node.body)
+    #     body[-1] = ast.Return(body[-1])
+    #     node = ast.FunctionDef(name=self.gensym(),
+    #                            args=ast.arguments(args=[node.args], defaults=[], vararg=None, kwarg=None),
+    #                            body=body, decorator_list=[])
+    #     self.localfuns = saved
+    #     self.localfuns.append(node)
+    #     return ast.Name(id=node.name, ctx=ast.Load())
+    def visit_FunctionDef(self, node):
+        self.generic_visit(node)
+        arguments = node.args
+        fun_arity = ast.Assign(targets=[ast.Name(id="FUN_ARITY", ctx=ast.Store())],
+                               value=ast.Num(n=len(arguments.args)))
+        partial_test = ast.parse("if len(FUN_ARGS) < FUN_ARITY: return lambda *lambdaargs: apply(%s, FUN_ARGS + lambdaargs)"
+                                 %node.name)
+        partial_test.lineno = 1
+        partial_test.col_offset = 0
+        fix(partial_test)
+        # print ast.dump(partial_test)
+        body = [fun_arity] + partial_test.body
+        count = 0
+        for arg in node.args.args:
+            body.append(ast.Assign(targets=[ast.Name(id=arg.id, ctx=ast.Store())],
+                                   value=ast.Subscript(value=ast.Name(id="FUN_ARGS", ctx=ast.Load()),
+                                                       slice=ast.Index(value=ast.Num(n=count)),
+                                                       ctx=ast.Load())))
+            count += 1
+        node.body = body + node.body
+        node.args.args = []
+        node.args.vararg = "FUN_ARGS"
+        return node
 
 class ShenVisitorUnlambda(ast.NodeTransformer):
     localfuns = []
@@ -1228,6 +1297,7 @@ class ShenEnv:
                 ShenVisitorUnlambda().visit(c)
                 ShenVisitorApply().visit(c)
                 ShenVisitor().visit(c)
+                ShenVisitorPartial().visit(c)
                 fix(c)
                 yield c
 

@@ -37,10 +37,17 @@ The implementation of the parser and compiler follows [ShenRuby](https://github.
                                                                                 |  bootstrap)    |
                                                                                 +----------------+
 
+### Handling partial applications
+
+In the first release, partial applications was handled by the function tco_apply (with a check of function arity with python inspect module).
+
 ## Installation
 
 PyShen requires Python > 2.5 and numpy. pyshen was developed and tested with Python 2.7.
 
+### Windows install
+
+  
 ## REPL
 
     % ipython

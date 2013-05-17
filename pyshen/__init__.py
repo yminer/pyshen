@@ -23,113 +23,11 @@ import uuid
 ################################################################################
 
 sys.setrecursionlimit(10000)
-
 FUNCTIONS = dict()
 FUNARITIES = dict()
 VARS = dict()
-SYMS = ['!', '}', '{', '-->', '<--', '&&', ':', ';', ':-', ':=', '_', '*language*', '*implementation*', '*stinput*', '*home-directory*', '*version*', '*maximum-print-sequence-size*', '*macros*', '*os*', '*release*', '*property-vector*', '@v', '@p', '@s', '*port*', '*porters*', '<-', '->', '<e>', '==', '=', '>=', '>', '/.', '=!', '$', '-', '/', '*', '+', '<=', '<', '>>', '==>', 'y-or-n?', 'write-to-file', 'where', 'when', 'warn', 'version', 'verified', 'variable?', 'value', 'vector->', '<-vector', 'vector', 'vector?', 'unspecialise', 'untrack', 'unit', 'shen.unix', 'union', 'unify', 'unify!', 'unprofile', 'undefmacro', 'return', 'type', 'tuple?', "false", 'trap-error', 'track', 'time', 'thaw', 'tc?', 'tc', 'tl', 'tlstr', 'tlv', 'tail', 'systemf', 'synonyms', 'symbol', 'symbol?', 'string->symbol', 'subst', 'string?', 'string->n', 'stream', 'string', 'stinput', 'stoutput', 'step', 'spy', 'specialise', 'snd', 'simple-error', 'set', 'save', 'str', 'run', 'reverse', 'remove', 'read', 'read-file', 'read-file-as-bytelist', 'read-file-as-string', 'read-byte', 'read-from-string', 'quit', 'put', 'preclude', 'preclude-all-but', 'ps', 'prolog?', 'protect', 'profile-results', 'profile', 'print', 'pr', 'pos', 'package', 'output', 'out', 'or', 'open', 'occurrences', 'occurs-check', 'n->string', 'number?', 'number', 'null', 'nth', 'not', 'nl', 'mode', 'macro', 'macroexpand', 'maxinferences', 'mapcan', 'map', 'make-string', 'load', 'loaded', 'list', 'lineread', 'limit', 'length', 'let', 'lazy', 'lambda', 'is', 'intersection', 'inferences', 'intern', 'integer?', 'input', 'input+', 'include', 'include-all-but', 'in', 'if', 'identical', 'head', 'hd', 'hdv', 'hdstr', 'hash', 'get', 'get-time', 'gensym', 'function', 'fst', 'freeze', 'fix', 'file', 'fail', 'fail-if', 'fwhen', 'findall', "true", 'enable-type-theory', 'explode', 'external', 'exception', 'eval-kl', 'eval', 'error-to-string', 'error', 'empty?', 'element?', 'do', 'difference', 'destroy', 'defun', 'define', 'defmacro', 'defcc', 'defprolog', 'declare', 'datatype', 'cut', 'cn', 'cons?', 'cons', 'cond', 'concat', 'compile', 'cd', 'cases', 'call', 'close', 'bind', 'bound?', 'boolean?', 'boolean', 'bar!', 'assoc', 'arity', 'append', 'and', 'adjoin', '<-address', 'address->', 'absvector?', 'absvector', 'abort', "super", "exists", "assert", "for", "while"]
-SYMDIC = dict()
-SYMDIC_MODE = False
 
-class PartialDecorator:
-    def __init__(self, arity):
-        self.arity = arity
-
-    def __call__(self, func):
-        def partial_wrapper(*FUN_ARGS):
-            if len(FUN_ARGS) < self.arity:
-                return lambda *args: apply(partial_wrapper, FUN_ARGS + args)
-            return apply(func, FUN_ARGS)
-        return partial_wrapper
-
-class Singleton:
-    """ A python singleton """
-
-    class __impl:
-        """ Implementation of the singleton interface """
-
-        def spam(self):
-            """ Test method, return singleton id """
-            return id(self)
-
-    # storage for the instance reference
-    __instance = None
-
-    def __init__(self):
-        """ Create singleton instance """
-        # Check whether we already have an instance
-        if Singleton.__instance is None:
-            # Create and remember instance
-            Singleton.__instance = Singleton.__impl()
-
-        # Store instance reference as the only member in the handle
-        self.__dict__['_Singleton__instance'] = Singleton.__instance
-
-    def __getattr__(self, attr):
-        """ Delegate access to implementation """
-        return getattr(self.__instance, attr)
-
-    def __setattr__(self, attr, value):
-        """ Delegate access to implementation """
-        return setattr(self.__instance, attr, value)
-
-class Sym(ast.Name):
-    sym = ""
-    value = None
-    lineno = 1
-    def __init__(self, sym):
-        # sym = sym.replace("-", "_").replace(".", "x").replace(">", "_").replace("<", "_").replace("?", "_P").replace("*", "_")
-        def pystr(s):
-            matcher = re.compile("[a-zA-Z0-9_]")
-            news = ""
-            for ch in s:
-                if ch == ".":
-                    news += "_"
-                elif not matcher.match(ch):
-                    news += "x%d" %ord(ch)
-                else:
-                    news += ch
-            return news
-        self.sym = intern(sym)
-        if self.sym in SYMS:
-            self.ssym = "kl_" + pystr(self.sym)
-        else:
-            self.ssym = pystr(self.sym)
-        # "kl_" + str(slugify(unicode(self.sym.replace(".", "_")))).replace("-", "_")
-        self.value = None
-    def __repr__(self):
-        return self.sym
-    def value(self):
-        if self.value == None:
-            raise SException("variable " + self.sym + " has no value")
-        return self.value
-    def __eq__(self, other):
-        return (other is self) or (isinstance(other, Sym) and self.sym == other.sym)
-    def hashcode(self):
-        h = 0
-        for c in self.sym:
-            h = (31 * h + ord(c)) & 0xFFFFFFFF
-        return ((h + 0x80000000) & 0xFFFFFFFF) - 0x80000000
-    def slug(self):
-        return self.ssym
-    def nodeSym(self):
-        global SYMDIC, SYMDIC_MODE
-        if SYMDIC_MODE:
-            if not self.sym in SYMDIC:
-                SYMDIC[self.sym] = "symdic_" + self.ssym
-            return ast.Attribute(value=ast.Name(id="symdic", ctx=ast.Load()),
-                                 attr=SYMDIC[self.sym],
-                                 ctx=ast.Load())
-        else:
-            return ast.fix_missing_locations(ast.Call(func=ast.Name(id="Sym", ctx=ast.Load()),
-                                                      keywords=[], starargs=None, kwargs=None,
-                                                      args=[ast.Str(self.sym, lineno=1)],
-                                                      lineno=1))
-    def nodeName(self):
-        return ast.Name(id=self.ssym, ctx=ast.Load())
-    @staticmethod
-    def new(self, sym):
-        return Sym(sym)
+from pyshen.core import *
 
 class SymTrue(Sym, Singleton):
     def __init__(self):
@@ -146,13 +44,42 @@ class SymFalse(Sym, Singleton):
 ShenTrue = Sym("true")
 ShenFalse = Sym("false")
 
-class SException(Exception):
-    pass
+
+from pyshen.primitives import *
+
+@PartialDecorator(2)
+def shen_set(sym, value):
+    global VARS
+    VARS[sym.sym] = value
+    return value
 
 
-################################################################################
-################################   PRIMITIVES   ################################
-################################################################################
+def shen_get(sym):
+    global VARS
+    try:
+        return VARS[sym.sym]
+    except Exception, e:
+        raise SException(e.message)
+
+def shen_apply(sym, args, glob=globals()):
+    global FUNCTIONS
+    if isinstance(sym, Sym):
+        return tco_apply(shen_get_fun(sym.sym), args, glob)
+    else:
+        return tco_apply(sym, args, glob)
+
+
+def shen_add_fun(name, fun, arity=None, glob=globals()):
+    global FUNCTIONS
+    FUNCTIONS[intern(name)] = fun
+    return Sym(name)
+
+def shen_get_fun(name):
+    global FUNCTIONS
+    try:
+        return FUNCTIONS[name]
+    except Exception, e:
+        raise SException(e.message)
 
 def tail_call(fun, args):
     global tramp_fn, tramp_args
@@ -192,186 +119,9 @@ def tco_apply(fun, args, glob=globals()):
 def tail_recursion(func):
     return func
 
-def shen_cons_str(f):
-    if isinstance(f, list):
-        return '(' + " ".join([shen_cons_str(x) for x in f]) + ")"
-    else:
-        return str(f)
-
-def shen_to_cons(array):
-    if len(array) == 0:
-        return []
-    else:
-        index = len(array) - 1
-        head = [array[index], []]
-        index = index - 1
-        while index >= 0:
-            head = [array[index], head]
-            index -= 1
-        return head
-
-def shen_cons_iter(cons):
-    cell = cons
-    while not cell == []:
-        yield car(cell)
-        cell = cdr(cell)
-
-def car(cons):
-    return [] if cons == [] else cons[0]
-
-def cdr(cons):
-    if cons.__class__ is list:
-        return [] if (cons == [] or len(cons) < 2) else cons[1]
-    else:
-        raise SException("%s is not a list" %str(cons))
-
-def cons_nth(n, lst):
-    return cons_nth(n - 1, cdr(lst)) if n > 0 else car(lst)
-
-def cons_length(lst, count=0):
-    tl = cdr(lst)
-    if tl.__class__ is list and tl != []:
-        return 1 + cons_length(tl)
-    elif tl == []:
-        return 1
-    else:
-        return 2
-    # return cons_length(cdr(lst), count + 1) if lst else count
-
-def shen_simple_error(msg):
-    raise SException(msg)
-
-def shen_try_except(success, failure):
-    try:
-        return success()
-    except SException, e:
-        return failure(e)
-
-class AbsVector(numpy.ndarray):
-    # def __init__(self, n):
-        # numpy.ndarray.__init__(self, shape=n, dtype=object)
-    def __eq__(self, other):
-        if other.__class__ != AbsVector:
-            return False
-        if self is other:
-            return True
-        if len(self) != len(other):
-            return False
-        return numpy.equal(self, other).all()
-
-def shen_absvector(n):
-    if not isinstance(n, int):
-        raise SException("%s is not a number" %str(n))
-    if n < 0:
-        raise SException("%d must be >= 0" %n)
-    # vec = [Sym("shen.fail!")] * (n + 1)
-    vec = AbsVector(n + 1, dtype=object)
-    vec[:] = Sym("shen.fail!")
-    return vec
-
-def shen_absvector_set(vec, n, value):
-    if not isinstance(vec, AbsVector):
-        raise SException("%s is not a vector" %str(vec))
-    if not isinstance(n, int):
-        raise SException("%s is not a number" %str(n))
-    if n < 0 or n >= len(vec):
-        raise SException("%d out of bound" %n)
-    vec[n] = value
-    return vec
-
-def shen_absvector_get(vec, n):
-    # print "GET", vec, n, vec[n]
-    if not isinstance(vec, AbsVector):
-        raise SException("%s is not a vector" %str(vec))
-    if not isinstance(n, int):
-        raise SException("%s is not a number" %str(n))
-    if n < 0 or n >= len(vec):
-        raise SException("%d out of bound" %n)
-    return vec[n]
-
-def shen_absvectorp(vec):
-    # return isinstance(vec, list)
-    return isinstance(vec, AbsVector)
-
-def shen_pr(s, stream):
-    if stream == sys.stdin:
-        stream = sys.stdout
-    stream.write(s)
-    return s
-
-def shen_read_byte(stream):
-    rd = stream.read(1)
-    return ord(rd) if len(rd) > 0 else -1
-
-def shen_open(stream_type, name, direction):
-    # print "Opening", stream_type, name, direction, type(direction)
-    if not stream_type.sym == "file":
-        raise SException("unsupported stream type")
-    return open(name, "w" if direction.sym == "out" else "r")
-
-def shen_close(stream):
-    stream.close()
-
-def shen_get_time(mode):
-    if mode.sym == "run":
-        return time.time()
-    elif mode.sym == "real":
-        return time.time()
-    else:
-        raise SException("unsupported get-time mode %s" %mode.sym)
-
-def shen_intern(s):
-    return Sym(s)
-
-def shen_consp(exp):
-    if exp.__class__ is list and len(exp) > 0:
-        return True
-    return False
-
-def pyshen_set(s, value):
-    s.value = value
-    return v
-
-def set_local(s, value):
-    # print sys._getframe(1).f_locals, sys._getframe(1).f_locals[s]
-    sys._getframe(1).f_locals[s] = value
-    return value
-
-def get_local(s):
-    return sys._getframe(1).f_locals[s]
-
-@PartialDecorator(2)
-def shen_set(sym, value):
-    global VARS
-    VARS[sym.sym] = value
-    return value
-
-def shen_get(sym):
-    global VARS
-    try:
-        return VARS[sym.sym]
-    except Exception, e:
-        raise SException(e.message)
-
-def shen_apply(sym, args, glob=globals()):
-    global FUNCTIONS
-    if isinstance(sym, Sym):
-        return tco_apply(shen_get_fun(sym.sym), args, glob)
-    else:
-        return tco_apply(sym, args, glob)
-
-def shen_add_fun(name, fun, arity=None, glob=globals()):
-    global FUNCTIONS, FUNARITIES
-    FUNCTIONS[intern(name)] = fun
-    return Sym(name)
-
-def shen_get_fun(name):
-    global FUNCTIONS
-    try:
-        return FUNCTIONS[name]
-    except Exception, e:
-        raise SException(e.message)
-
+################################################################################
+################################   PARSER   ####################################
+################################################################################
 def shen_compile(form, rvalue=False):
     env = ShenEnv()
     code = env.compile_shen(form)
@@ -424,45 +174,6 @@ def shen_eval_kl(form, glob=globals()):
     else:
         # print "Returning", ldict['result']
         return glob['result']
-
-
-@PartialDecorator(2)
-def shen_add(x, y):
-    return x + y
-@PartialDecorator(2)
-def shen_sub(x, y): return x - y
-@PartialDecorator(2)
-def shen_mul(x, y): return x * y
-@PartialDecorator(2)
-def shen_div(x, y): return x / y
-
-@PartialDecorator(2)
-def shen_abseq(x, y):
-    if shen_absvectorp(x) and shen_absvectorp(y):
-        return numpy.equal(x, y).all()
-    else:
-        return x == y
-
-@PartialDecorator(2)
-def shen_eq(x, y):
-    return x == y
-
-@PartialDecorator(2)
-def shen_gt(x, y): return x > y
-@PartialDecorator(2)
-def shen_lt(x, y): return x < y
-@PartialDecorator(2)
-def shen_gte(x, y): return x >= y
-@PartialDecorator(2)
-def shen_lte(x, y): return x <= y
-@PartialDecorator(2)
-def shen_or(x, y): return x or y
-@PartialDecorator(2)
-def shen_and(x, y): return x and y
-
-################################################################################
-################################   PARSER   ####################################
-################################################################################
 
 fix = ast.fix_missing_locations
 
@@ -1224,7 +935,6 @@ class ShenEnv:
                               ast.List(elts=[bound_expr], ctx=ast.Load())])
 
     def compile_application(self, form, lexical_vars, in_tail_pos):
-        global SYMS
         f, args = car(form), cdr(form)
         # print "Application", form, lexical_vars, "ARGS", args, cons_length(args), in_tail_pos
         if isinstance(f, Sym) and intern(f.sym) in self.PRIMITIVES and cons_length(args) == self.PRIMITIVES[f.sym][0]:

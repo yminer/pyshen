@@ -1,5 +1,7 @@
 # primitives.py ---
 import numpy
+import time
+import sys
 from pyshen.core import PartialDecorator, Sym, SException
 
 ################################################################################

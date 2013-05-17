@@ -7,14 +7,8 @@ import ast
 import StringIO
 import copy
 import itertools
-import numpy
 import unparse
-import types
-import collections
 import contextlib
-import functools
-import threading
-import inspect
 import time
 import uuid
 
@@ -93,21 +87,6 @@ def tco_apply(fun, args, glob=globals()):
         if fun.__class__ == Sym:
             fun = shen_get_fun(fun.sym)
         result = apply(fun, args)
-        # try:
-        #     arity = fun.arity
-        # except AttributeError, e:
-        #     # print FUNARITIES
-        #     # arity = FUNARITIES[fun]
-        #     arity = len(inspect.getargspec(fun).args)
-        #     fun.arity = arity
-        # argsize = len(args)
-        # if arity == argsize or arity == 0:
-        #     result = apply(fun, args)
-        # elif arity > argsize:
-        #     result = functools.partial(fun, *args)
-        #     result.arity = arity - argsize
-        # else:
-        #     raise SException("not handled yet")
         if tramp_fn:
             args = tramp_args
             tramp_args = None

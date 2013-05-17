@@ -4,7 +4,8 @@ from Cython.Distutils import build_ext
 
 ext_modules = [Extension("pyshen.primitives", ["pyshen/primitives.py"],  extra_compile_args=[]),
                Extension("pyshen.core", ["pyshen/core.py"],  extra_compile_args=[]),
-               Extension("pyshen.shen", ["pyshen/shen.py"],  extra_compile_args=["-O0"])]
+               Extension("pyshen.shen", ["pyshen/shen.py"],  extra_compile_args=["-O0"]),
+               Extension("pyshen.__init__", ["pyshen/__init__.py"],  extra_compile_args=[])]
 
 setup(
   name = 'shen app',

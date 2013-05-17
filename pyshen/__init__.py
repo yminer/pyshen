@@ -136,7 +136,7 @@ def shen_eval_kl(form, glob=globals()):
     tramp_fn = None
     try:
         bcode = compile(code, "<string>", "exec")
-        exec(bcode, glob)#, ldict)
+        exec(bcode) in glob#, ldict)
     except Exception, e:
         io = StringIO.StringIO()
         unparse.Unparser(code, io)
@@ -1079,7 +1079,7 @@ def compile_pyshen():
     fpo.close()
     SYMDIC_MODE = False
 
-from shen import *
+from pyshen.shen import *
 
 def pyshen():
     shen_eval_kl(shen_to_cons([Sym("shen.shen")]), globals())

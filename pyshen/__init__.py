@@ -40,6 +40,7 @@ ShenFalse = Sym("false")
 
 
 from pyshen.primitives import *
+from pyshen.cons import *
 
 @PartialDecorator(2)
 def shen_set(sym, value):
@@ -606,14 +607,14 @@ class ShenEnv:
                                                                 ctx=ast.Load())),
                             ast.Name(id='shen_error_to_string', ctx=ast.Load())),
         # 'if': (3, lambda x, y, z: ast_expr(ast.IfExp(x, y, z))),
-        'hd': (1, lambda x: ast_expr(ast.Subscript(value=x,
-                                                   slice=ast.Index(value=ast.Num(n=0)),
-                                                   ctx=ast.Load())),
-               ast.Name(id='shen_hd', ctx=ast.Load())),
-        'tl': (1, lambda x: ast_expr(ast.Subscript(value=x,
-                                                   slice=ast.Index(value=ast.Num(n=1)),
-                                                   ctx=ast.Load())),
-               ast.Name(id='shen_tl', ctx=ast.Load())),
+        'hd': (1, lambda x: ast.Call(func=ast.Name(id='car', ctx=ast.Load()),
+                                     keywords=[], starargs=None, kwargs=None,
+                                     args=[x]),
+               ast.Name(id='car', ctx=ast.Load())),
+        'tl': (1, lambda x: ast.Call(func=ast.Name(id='cdr', ctx=ast.Load()),
+                                     keywords=[], starargs=None, kwargs=None,
+                                     args=[x]),
+               ast.Name(id='cdr', ctx=ast.Load())),
         'intern': (1, lambda x: ast_expr(ast.Call(func=ast.Name(id='shen_intern', ctx=ast.Load()),
                                                   keywords=[], starargs=None, kwargs=None,
                                                   args=[x]))),
@@ -687,9 +688,9 @@ class ShenEnv:
                 return form
         elif isinstance(form, str):
             return ast.Str(form)
-        elif form == []:
-            return ast.parse("[]", mode="eval").body
-        elif isinstance(form, list):
+        elif form is nil:
+            return ast.Name(id="nil", ctx=ast.Load())
+        elif consp(form):
             return self.compile_form(form, lexical_vars, in_tail_pos, **kwargs)
         elif isinstance(form, numbers.Number):
             return ast.Num(form)
@@ -701,16 +702,17 @@ class ShenEnv:
         # print "defun", name, "ARG", arglist, "body", body
         if not isinstance(name, Sym):
             raise SException(name + " is not a symbol")
-        if not (isinstance(arglist, list) or arglist == []):
+        if not (consp(arglist) or arglist is nil):
             raise SException(name + " is not a list")
-        for arg in shen_cons_iter(arglist):
+        for arg in arglist:
+            # print arg
             if not isinstance(arg, Sym):
                 raise SException(arg + " is not a symbol")
         # if name.sym in self.PRIMITIVES:
             # raise SException(name.sym + " is a primitive and cannot be redefined")
-        extended_vars = self.add_vars(lexical_vars, [arg for arg in shen_cons_iter(arglist)], prefix="KL_ARG")
+        extended_vars = self.add_vars(lexical_vars, [arg for arg in arglist], prefix="KL_ARG")
         fn_name = name.slug()
-        fn_args = [ast.Name(id=extended_vars[arg.sym], ctx=ast.Load()) for arg in shen_cons_iter(arglist)]
+        fn_args = [ast.Name(id=extended_vars[arg.sym], ctx=ast.Load()) for arg in arglist]
         fn_body = self.compile_shen(body, extended_vars, True)
         if not isinstance(fn_body, list):
             fn_body = [fn_body]
@@ -779,7 +781,9 @@ class ShenEnv:
             hd, tl = cons_nth(1, form), cons_nth(2, form)
             hd_expr = self.compile_shen(hd, lexical_vars, False)
             tl_expr = self.compile_shen(tl, lexical_vars, False)
-            return ast.List(elts=[hd_expr, tl_expr], ctx=ast.Load())
+            return ast.Call(func=ast.Name(id='Cons', ctx=ast.Load()),
+                            keywords=[], starargs=None, kwargs=None,
+                            args=[hd_expr, tl_expr])
         else:
             return self.compile_application(form, lexical_vars, in_tail_pos)
 
@@ -844,14 +848,15 @@ class ShenEnv:
 
     def compile_cond(self, form, lexical_vars, in_tail_pos):
         clauses = cdr(form)
-        if clauses == []:
+        # print form, clauses
+        if clauses is nil:
             return self.compile_shen(shen_to_cons([Sym("simple-error"), "condition failure"]))
         else:
             clause = car(clauses)
             test_expr = car(clause)
             true_expr = car(cdr(clause))
-            false_expr = [Sym("cond"), cdr(clauses)]
-            # print "FALSE", false_expr
+            false_expr = Cons(Sym("cond"), cdr(clauses))
+            # print "FALSE", false_expr, false_expr.tl
             return self.compile_shen(shen_to_cons([Sym("if"), test_expr, true_expr, false_expr]),
                                      lexical_vars, in_tail_pos)
 
@@ -918,7 +923,7 @@ class ShenEnv:
         # print "Application", form, lexical_vars, "ARGS", args, cons_length(args), in_tail_pos
         if isinstance(f, Sym) and intern(f.sym) in self.PRIMITIVES and cons_length(args) == self.PRIMITIVES[f.sym][0]:
             # print "PRIM", f.sym
-            fargs = [self.compile_shen(arg, lexical_vars, False) for arg in shen_cons_iter(args)]
+            fargs = [self.compile_shen(arg, lexical_vars, False) for arg in args]
             return apply(self.PRIMITIVES[f.sym][1], fargs)
         else:
             # print "APP", f.sym
@@ -932,7 +937,7 @@ class ShenEnv:
                 rator = self.compile_shen(f, lexical_vars, False)
             # if isinstance(rator, Sym):
                 # rator = rator.nodeSym()
-            rands = [self.compile_shen(arg, lexical_vars, False) for arg in shen_cons_iter(args)]
+            rands = [self.compile_shen(arg, lexical_vars, False) for arg in args]
             if isinstance(rator, Sym) and rator.sym in ["declare"]:
                 return ast.Call(func=ast.Name(id="apply", ctx=ast.Load()),
                                 keywords=[], starargs=None, kwargs=None,
@@ -1003,7 +1008,9 @@ class ShenEnv:
     def load_stream(env, stream):
         codes = []
         for form in shen_reader(stream):
+            # print "form", form
             for code in env.eval(form):
+                # print code
                 codes.append(code)
         return codes
 
@@ -1034,8 +1041,7 @@ class Shen2(ShenEnv):
         fpo.close()
 
 def compile_pyshen():
-    global SYMDIC, SYMDIC_MODE
-    SYMDIC_MODE = True
+    symdic_set_status(True)
     env = ShenEnv()
     shen_decls = [
         ast.parse('FUNCTIONS.update({"or": shen_or, "and": shen_and})'),
@@ -1065,19 +1071,19 @@ def compile_pyshen():
     # print shen_body
     module_body = [ast.parse("import sys\nfrom pyshen import *\n")]
     # module_body += env.getDeclarations(shen_decls, shen_postdecls) + shen_body
-    module_body += [ast.parse("class SymDic:\n" + "\n".join(["  %s = Sym('%s')" %(SYMDIC[sym], sym) for sym in SYMDIC])
+    module_body += [ast.parse("class SymDic:\n" + "\n".join(["  %s = Sym('%s')" %(symdic_get()[sym], sym) for sym in symdic_get()])
                               + "\nsymdic = SymDic()\n")]
     module_body += shen_body
     module = ast.Module(body=module_body)
     fix(module)
-    fpo  = open("shen.py", "w+")
-    fpo.write(open("header.py", "r").read())
+    fpo  = open("pyshen/shen.py", "w+")
+    fpo.write(open("pyshen/header.py", "r").read())
     fpo.write("\n")
     unparse.Unparser(module, fpo)
     # fpo.write('\ndef pyshen(): [shen_init(), shen_eval_kl(shen_to_cons([Sym("shen.shen")]), globals())]\n')
-    fpo.write(open("footer.py", "r").read())
+    fpo.write(open("pyshen/footer.py", "r").read())
     fpo.close()
-    SYMDIC_MODE = False
+    symdic_set_status(False)
 
 from pyshen.shen import *
 

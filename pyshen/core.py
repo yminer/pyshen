@@ -5,6 +5,14 @@ import re
 SYMDIC = dict()
 SYMDIC_MODE = False
 
+def symdic_set_status(status):
+    global SYMDIC_MODE
+    SYMDIC_MODE = status
+
+def symdic_get():
+    global SYMDIC
+    return SYMDIC
+
 class PartialDecorator:
     def __init__(self, arity):
         self.arity = arity
@@ -79,7 +87,9 @@ class Sym(ast.Name):
             raise SException("variable " + self.sym + " has no value")
         return self.value
     def __eq__(self, other):
-        return (other is self) or (isinstance(other, Sym) and self.sym == other.sym)
+        if other is self:
+            return True
+        return isinstance(other, Sym) and self.sym == other.sym
     def hashcode(self):
         h = 0
         for c in self.sym:

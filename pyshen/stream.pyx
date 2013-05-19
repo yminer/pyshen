@@ -43,15 +43,13 @@ def shen_open(stream_type, name, direction):
     f.open(name, "w" if direction.sym == "out" else "r")
     return f
 
-def shen_close(stream):
+def shen_close(File stream):
     stream.close()
 
-def shen_pr(s, stream):
-    # if stream == sys.stdin:
-        # stream = sys.stdout
+def shen_pr(char *s, File stream):
     stream.write(s, len(s))
     return s
 
-def shen_read_byte(stream):
+def shen_read_byte(File stream):
     return stream.read()
 

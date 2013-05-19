@@ -560,7 +560,7 @@ class SymDic:
     symdic_kl_time = Sym('time')
 symdic = SymDic()
 FUNCTIONS.update({'or': shen_or, 'and': shen_and})
-VARS.update({'*language*': 'Python', '*implementation*': 'pyshen', '*release*': '', '*port*': '0.135', '*porters*': 'Matthieu Lagacherie and Yannick Drant', '*home-directory*': '~/', '*stinput*': sys.stdin, '*stoutput*': sys.stdout, '*version*': 'version 11'})
+VARS.update({'*language*': 'Python', '*implementation*': 'pyshen', '*release*': '', '*port*': '0.135', '*porters*': 'Matthieu Lagacherie and Yannick Drant', '*home-directory*': '~/', '*stinput*': shen_stdin(), '*stoutput*': shen_stdout(), '*version*': 'version 11'})
 
 
 #============================== toplevel.kl==============================

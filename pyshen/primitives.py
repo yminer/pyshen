@@ -7,6 +7,7 @@ from pyshen.core import PartialDecorator, Sym, SException
 ################################################################################
 ################################   PRIMITIVES   ################################
 ################################################################################
+from pyshen.stream import *
 
 def shen_cons_str(f):
     if isinstance(f, list):
@@ -109,24 +110,6 @@ def shen_absvectorp(vec):
     # return isinstance(vec, list)
     return isinstance(vec, AbsVector)
 
-def shen_pr(s, stream):
-    if stream == sys.stdin:
-        stream = sys.stdout
-    stream.write(s)
-    return s
-
-def shen_read_byte(stream):
-    rd = stream.read(1)
-    return ord(rd) if len(rd) > 0 else -1
-
-def shen_open(stream_type, name, direction):
-    # print "Opening", stream_type, name, direction, type(direction)
-    if not stream_type.sym == "file":
-        raise SException("unsupported stream type")
-    return open(name, "w" if direction.sym == "out" else "r")
-
-def shen_close(stream):
-    stream.close()
 
 def shen_get_time(mode):
     if mode.sym == "run":

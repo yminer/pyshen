@@ -11,6 +11,7 @@ import unparse
 import contextlib
 import time
 import uuid
+import functools
 
 ################################################################################
 ################################   ENVIRONMENT   ###############################
@@ -86,7 +87,10 @@ def tco_apply(fun, args, glob=globals()):
         tramp_fn = None
         if fun.__class__ == Sym:
             fun = shen_get_fun(fun.sym)
-        result = apply(fun, args)
+        try:
+            result = apply(fun, args)
+        except TypeError, e:
+            result = functools.partial(fun, *args)
         if tramp_fn:
             args = tramp_args
             tramp_args = None
@@ -97,6 +101,9 @@ def tco_apply(fun, args, glob=globals()):
 
 def tail_recursion(func):
     return func
+
+def kl_quit():
+    sys.exit(1)
 
 ################################################################################
 ################################   PARSER   ####################################
@@ -115,7 +122,7 @@ def shen_compile(form, rvalue=False):
     ShenVisitorUnlambda().visit(module)
     ShenVisitorApply().visit(module)
     ShenVisitor().visit(module)
-    ShenVisitorPartial().visit(module)
+    # ShenVisitorPartial().visit(module)
     if rvalue:
         if not isinstance(module.body[-1], ast.FunctionDef):
             last = module.body[-1]
@@ -407,19 +414,23 @@ class ShenVisitorPartial(ast.NodeTransformer):
 
 class ShenVisitorUnlambda(ast.NodeTransformer):
     localfuns = []
+    currentfun = None
     count = 0
+    
     def gensym(self):
         self.count += 1
-        return "fun_%d" %self.count
+        return "%s_lambda_%d" %(self.currentfun, self.count)
     def visit_Call(self, node):
         # if node.func.id=="apply" and isinstance(node.args[0], ast.Lambda):
         #     self.generic_visit(node)
         #     if not isinstance(node.args[0], ast.FunctionDef):
         #         raise SException("ast transforamtion failed " + node.args)
         #     fun = node.args[0]
-        #     node.args[0] = ast.Name(id=fun.name, ctx=ast.Load())
+        #     node.args[0] = ast.Name(id=fun.name, ctx=ast.Load(), lineno=1, col_offset=0)
+        #     node.lineno = node.col_offset = 1
+        #     fix(node)
         #     return node
-        self.generic_visit(node)
+        # self.generic_visit(node)
         return node
     # def visit_Lambda(self, node):
     #     saved = self.localfuns
@@ -432,20 +443,25 @@ class ShenVisitorUnlambda(ast.NodeTransformer):
     #         body += node.body
     #     else:
     #         body.append(node.body)
-    #     body[-1] = ast.Return(body[-1])
+    #     body[-1] = ast.Return(body[-1], lineno=1, col_offset=0)
     #     node = ast.FunctionDef(name=self.gensym(),
-    #                            args=ast.arguments(args=[node.args], defaults=[], vararg=None, kwarg=None),
-    #                            body=body, decorator_list=[])
+    #                            args=node.args,
+    #                            body=body, decorator_list=[], lineno=1, col_offset=0)
+    #     node.lineno = node.col_offset = 1
+    #     fix(node)
     #     self.localfuns = saved
     #     self.localfuns.append(node)
-    #     return ast.Name(id=node.name, ctx=ast.Load())
+    #     return ast.Name(id=node.name, ctx=ast.Load(), lineno=1, col_offset=0)
     def visit_FunctionDef(self, node):
         savedloc = self.localfuns
+        savedfun = self.currentfun
         self.localfuns = []
+        self.currentfun = node.name
         self.generic_visit(node)
         nbody = []
         nloc = min(2, node.nlocals)
         for fun in self.localfuns:
+            fix(fun)
             nbody.append(fun)
         # print "LOCFUN", self.localfuns
         for line in range(len(node.body)):
@@ -454,9 +470,11 @@ class ShenVisitorUnlambda(ast.NodeTransformer):
             else:
                 nbody.append(node.body[line])
         # nbody += node.body
-        nbody[-1] = ast.Return(nbody[-1])
+        nbody[-1] = ast.Return(nbody[-1], lineno=1)
         node.body = nbody
+        fix(node)
         self.localfuns = savedloc
+        self.currentfun = savedfun
         return node
 
 class ShenVisitorApply(ast.NodeTransformer):
@@ -636,9 +654,7 @@ class ShenEnv:
         'string->n': (1, lambda x: ast_expr(ast.Call(func=ast.Name(id='ord', ctx=ast.Load()),
                                                      keywords=[], starargs=None, kwargs=None,
                                                      args=[x]))),
-        '=': (2, lambda x, y: ast.Call(func=ast.Name(id='shen_eq', ctx=ast.Load()),
-                                                     keywords=[], starargs=None, kwargs=None,
-                                                     args=[x, y]),
+        '=': (2, lambda x, y: ast.Compare(left=x, ops=[ast.Eq()], comparators=[y]),# ast.Call(func=ast.Name(id='shen_eq', ctx=ast.Load()), keywords=[], starargs=None, kwargs=None, args=[x, y]),
               ast.Name(id='shen_eq', ctx=ast.Load())),
         'absvector': (1, lambda n: ast_expr(ast.Call(func=ast.Name(id='shen_absvector', ctx=ast.Load()),
                                                      keywords=[], starargs=None, kwargs=None,
@@ -986,7 +1002,7 @@ class ShenEnv:
                 ShenVisitorUnlambda().visit(c)
                 ShenVisitorApply().visit(c)
                 ShenVisitor().visit(c)
-                ShenVisitorPartial().visit(c)
+                # ShenVisitorPartial().visit(c)
                 fix(c)
                 yield c
 
@@ -1034,12 +1050,11 @@ class Shen2(ShenEnv):
         fpo.close()
 
 def compile_pyshen():
-    global SYMDIC, SYMDIC_MODE
-    SYMDIC_MODE = True
+    symdic_set_status(True)
     env = ShenEnv()
     shen_decls = [
         ast.parse('FUNCTIONS.update({"or": shen_or, "and": shen_and})'),
-        ast.parse('VARS.update({"*language*": "Python", "*implementation*": "pyshen", "*release*": "", "*port*": "0.135", "*porters*": "Matthieu Lagacherie and Yannick Drant", "*home-directory*": "~/", "*stinput*": sys.stdin, "*stoutput*": sys.stdout, "*version*": "version 11"})')]
+        ast.parse('VARS.update({"*language*": "Python", "*implementation*": "pyshen", "*release*": "", "*port*": "0.135", "*porters*": "Matthieu Lagacherie and Yannick Drant", "*home-directory*": "~/", "*stinput*": shen_stdin(), "*stoutput*": shen_stdout(), "*version*": "version 11"})')]
     shen_postdecls = [ast.parse("shen_initialise_arity_table(shen_to_cons([Sym('absvector'), 1, Sym('adjoin'), 2, Sym('and'), 2, Sym('append'), 2, Sym('arity'), 1, Sym('assoc'), 2, Sym('boolean?'), 1, Sym('cd'), 1, Sym('compile'), 3, Sym('concat'), 2, Sym('cons'), 2, Sym('cons?'), 1, Sym('cn'), 2, Sym('declare'), 2, Sym('destroy'), 1, Sym('difference'), 2, Sym('do'), 2, Sym('element?'), 2, Sym('empty?'), 1, Sym('enable-type-theory'), 1, Sym('interror'), 2, Sym('eval'), 1, Sym('eval-kl'), 1, Sym('explode'), 1, Sym('external'), 1, Sym('fail-if'), 2, Sym('fail'), 0, Sym('fix'), 2, Sym('findall'), 5, Sym('freeze'), 1, Sym('fst'), 1, Sym('gensym'), 1, Sym('get'), 3, Sym('get-time'), 1, Sym('address->'), 3, Sym('<-address'), 2, Sym('<-vector'), 2, Sym('>'), 2, Sym('>='), 2, Sym('='), 2, Sym('hd'), 1, Sym('hdv'), 1, Sym('hdstr'), 1, Sym('head'), 1, Sym('if'), 3, Sym('integer?'), 1, Sym('identical'), 4, Sym('inferences'), 0, Sym('intersection'), 2, Sym('length'), 1, Sym('lineread'), 0, Sym('load'), 1, Sym('<'), 2, Sym('<='), 2, Sym('vector'), 1, Sym('macroexpand'), 1, Sym('map'), 2, Sym('mapcan'), 2, Sym('maxinferences'), 1, Sym('not'), 1, Sym('nth'), 2, Sym('n->string'), 1, Sym('number?'), 1, Sym('occurs-check'), 1, Sym('occurrences'), 2, Sym('occurs-check'), 1, Sym('or'), 2, Sym('package'), 3, Sym('pos'), 2, Sym('print'), 1, Sym('profile'), 1, Sym('profile-results'), 0, Sym('pr'), 2, Sym('ps'), 1, Sym('preclude'), 1, Sym('preclude-all-but'), 1, Sym('protect'), 1, Sym('address->'), 3, Sym('put'), 4, Sym('shen.reassemble'), 2, Sym('read-file-as-string'), 1, Sym('read-file'), 1, Sym('read-byte'), 1, Sym('read-from-string'), 1, Sym('remove'), 2, Sym('reverse'), 1, Sym('set'), 2, Sym('simple-error'), 1, Sym('snd'), 1, Sym('specialise'), 1, Sym('spy'), 1, Sym('step'), 1, Sym('stinput'), 0, Sym('stoutput'), 0, Sym('string->n'), 1, Sym('string->symbol'), 1, Sym('string?'), 1, Sym('shen.strong-warning'), 1, Sym('subst'), 3, Sym('shen.sum'), 1, Sym('symbol?'), 1, Sym('tail'), 1, Sym('tl'), 1, Sym('tc'), 1, Sym('tc?'), 1, Sym('thaw'), 1, Sym('track'), 1, Sym('trap-error'), 2, Sym('tuple?'), 1, Sym('type'), 1, Sym('return'), 3, Sym('undefmacro'), 1, Sym('unprofile'), 1, Sym('unify'), 4, Sym('unify!'), 4, Sym('union'), 2, Sym('untrack'), 1, Sym('unspecialise'), 1, Sym('undefmacro'), 1, Sym('vector'), 1, Sym('vector->'), 3, Sym('value'), 1, Sym('variable?'), 1, Sym('version'), 1, Sym('warn'), 1, Sym('write-to-file'), 2, Sym('y-or-n?'), 1, Sym('+'), 2, Sym('*'), 2, Sym('/'), 2, Sym('-'), 2, Sym('=='), 2, Sym('shen.<1>'), 1, Sym('<e>'), 1, Sym('@p'), 2, Sym('@v'), 2, Sym('@s'), 2, Sym('preclude'), 1, Sym('include'), 1, Sym('preclude-all-but'), 1, Sym('include-all-but'), 1, Sym('where'), 2]))"),
                   ast.parse("kl_put(shen_intern('shen'), Sym('shen.external-symbols'), shen_to_cons([Sym('!'), Sym('}'), Sym('{'), Sym('-->'), Sym('<--'), Sym('&&'), Sym(':'), Sym(';'), Sym(':-'), Sym(':='), Sym('_'), Sym('*language*'), Sym('*implementation*'), Sym('*stinput*'), Sym('*home-directory*'), Sym('*version*'), Sym('*maximum-print-sequence-size*'), Sym('*macros*'), Sym('*os*'), Sym('*release*'), Sym('*property-vector*'), Sym('@v'), Sym('@p'), Sym('@s'), Sym('*port*'), Sym('*porters*'), Sym('<-'), Sym('->'), Sym('<e>'), Sym('=='), Sym('='), Sym('>='), Sym('>'), Sym('/.'), Sym('=!'), Sym('$'), Sym('-'), Sym('/'), Sym('*'), Sym('+'), Sym('<='), Sym('<'), Sym('>>'), tco_apply(kl_vector, [0]), Sym('==>'), Sym('y-or-n?'), Sym('write-to-file'), Sym('where'), Sym('when'), Sym('warn'), Sym('version'), Sym('verified'), Sym('variable?'), Sym('value'), Sym('vector->'), Sym('<-vector'), Sym('vector'), Sym('vector?'), Sym('unspecialise'), Sym('untrack'), Sym('unit'), Sym('shen.unix'), Sym('union'), Sym('unify'), Sym('unify!'), Sym('unprofile'), Sym('undefmacro'), Sym('return'), Sym('type'), Sym('tuple?'), Sym('true'), Sym('trap-error'), Sym('track'), Sym('time'), Sym('thaw'), Sym('tc?'), Sym('tc'), Sym('tl'), Sym('tlstr'), Sym('tlv'), Sym('tail'), Sym('systemf'), Sym('synonyms'), Sym('symbol'), Sym('symbol?'), Sym('string->symbol'), Sym('subst'), Sym('string?'), Sym('string->n'), Sym('stream'), Sym('string'), Sym('stinput'), Sym('stoutput'), Sym('step'), Sym('spy'), Sym('specialise'), Sym('snd'), Sym('simple-error'), Sym('set'), Sym('save'), Sym('str'), Sym('run'), Sym('reverse'), Sym('remove'), Sym('read'), Sym('read-file'), Sym('read-file-as-bytelist'), Sym('read-file-as-string'), Sym('read-byte'), Sym('read-from-string'), Sym('quit'), Sym('put'), Sym('preclude'), Sym('preclude-all-but'), Sym('ps'), Sym('prolog?'), Sym('protect'), Sym('profile-results'), Sym('profile'), Sym('print'), Sym('pr'), Sym('pos'), Sym('package'), Sym('output'), Sym('out'), Sym('or'), Sym('open'), Sym('occurrences'), Sym('occurs-check'), Sym('n->string'), Sym('number?'), Sym('number'), Sym('null'), Sym('nth'), Sym('not'), Sym('nl'), Sym('mode'), Sym('macro'), Sym('macroexpand'), Sym('maxinferences'), Sym('mapcan'), Sym('map'), Sym('make-string'), Sym('load'), Sym('loaded'), Sym('list'), Sym('lineread'), Sym('limit'), Sym('length'), Sym('let'), Sym('lazy'), Sym('lambda'), Sym('is'), Sym('intersection'), Sym('inferences'), Sym('intern'), Sym('integer?'), Sym('input'), Sym('input+'), Sym('include'), Sym('include-all-but'), Sym('in'), Sym('if'), Sym('identical'), Sym('head'), Sym('hd'), Sym('hdv'), Sym('hdstr'), Sym('hash'), Sym('get'), Sym('get-time'), Sym('gensym'), Sym('function'), Sym('fst'), Sym('freeze'), Sym('fix'), Sym('file'), Sym('fail'), Sym('fail-if'), Sym('fwhen'), Sym('findall'), Sym('false'), Sym('enable-type-theory'), Sym('explode'), Sym('external'), Sym('exception'), Sym('eval-kl'), Sym('eval'), Sym('error-to-string'), Sym('error'), Sym('empty?'), Sym('element?'), Sym('do'), Sym('difference'), Sym('destroy'), Sym('defun'), Sym('define'), Sym('defmacro'), Sym('defcc'), Sym('defprolog'), Sym('declare'), Sym('datatype'), Sym('cut'), Sym('cn'), Sym('cons?'), Sym('cons'), Sym('cond'), Sym('concat'), Sym('compile'), Sym('cd'), Sym('cases'), Sym('call'), Sym('close'), Sym('bind'), Sym('bound?'), Sym('boolean?'), Sym('boolean'), Sym('bar!'), Sym('assoc'), Sym('arity'), Sym('append'), Sym('and'), Sym('adjoin'), Sym('<-address'), Sym('address->'), Sym('absvector?'), Sym('absvector'), Sym('abort')]), shen_get(Sym('*property-vector*')))")]
     shen_body = shen_decls
@@ -1070,14 +1085,14 @@ def compile_pyshen():
     module_body += shen_body
     module = ast.Module(body=module_body)
     fix(module)
-    fpo  = open("shen.py", "w+")
-    fpo.write(open("header.py", "r").read())
+    fpo  = open("pyshen/shen.py", "w+")
+    fpo.write(open("pyshen/header.py", "r").read())
     fpo.write("\n")
     unparse.Unparser(module, fpo)
     # fpo.write('\ndef pyshen(): [shen_init(), shen_eval_kl(shen_to_cons([Sym("shen.shen")]), globals())]\n')
-    fpo.write(open("footer.py", "r").read())
+    fpo.write(open("pyshen/footer.py", "r").read())
     fpo.close()
-    SYMDIC_MODE = False
+    symdic_set_status(False)
 
 from pyshen.shen import *
 

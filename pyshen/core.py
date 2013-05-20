@@ -5,16 +5,25 @@ import re
 SYMDIC = dict()
 SYMDIC_MODE = False
 
+def symdic_set_status(status):
+    global SYMDIC_MODE
+    SYMDIC_MODE = status
+
+def symdic_get():
+    global SYMDIC
+    return SYMDIC
+
 class PartialDecorator:
     def __init__(self, arity):
         self.arity = arity
 
     def __call__(self, func):
-        def partial_wrapper(*FUN_ARGS):
-            if len(FUN_ARGS) < self.arity:
-                return lambda *args: apply(partial_wrapper, FUN_ARGS + args)
-            return apply(func, FUN_ARGS)
-        return partial_wrapper
+        return func
+        # def partial_wrapper(*FUN_ARGS):
+        #     if len(FUN_ARGS) < self.arity:
+        #         return lambda *args: apply(partial_wrapper, FUN_ARGS + args)
+        #     return apply(func, FUN_ARGS)
+        # return partial_wrapper
 
 class Singleton:
     """ A python singleton """

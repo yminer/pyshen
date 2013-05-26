@@ -40,6 +40,7 @@ The implementation of the parser and compiler follows [ShenRuby](https://github.
 ### Handling partial applications
 
 In the first release, partial applications was handled by the function tco_apply (with a check of function arity with python inspect module).
+In this release, partial applications are handled via exceptions.
 
 ## Installation
 

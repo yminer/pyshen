@@ -11,7 +11,10 @@ def shen_open(stream_type, name, direction):
     # print "Opening", stream_type, name, direction, type(direction)
     if not stream_type.sym == "file":
         raise SException("unsupported stream type")
-    return open(name, "w" if direction.sym == "out" else "r")
+    try:
+        return open(name, "w" if direction.sym == "out" else "r")
+    except IOError, e:
+        raise SException("IOError: " + e.message)
 
 def shen_close(stream):
     stream.close()

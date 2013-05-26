@@ -25,6 +25,7 @@ class PartialDecorator:
         #     return apply(func, FUN_ARGS)
         # return partial_wrapper
 
+# Python recipe http://code.activestate.com/recipes/52558-the-singleton-pattern-implemented-with-python/
 class Singleton:
     """ A python singleton """
 
@@ -89,11 +90,6 @@ class Sym(ast.Name):
         return self.value
     def __eq__(self, other):
         return (other is self) or (isinstance(other, Sym) and self.sym == other.sym)
-    def hashcode(self):
-        h = 0
-        for c in self.sym:
-            h = (31 * h + ord(c)) & 0xFFFFFFFF
-        return ((h + 0x80000000) & 0xFFFFFFFF) - 0x80000000
     def slug(self):
         return self.ssym
     def nodeSym(self):

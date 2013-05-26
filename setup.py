@@ -9,7 +9,12 @@ ext_modules = [Extension("pyshen.primitives", ["pyshen/primitives.py"],  extra_c
                Extension("pyshen.__init__", ["pyshen/__init__.py"],  extra_compile_args=[])]
 
 setup(
-  name = 'shen app',
-  cmdclass = {'build_ext': build_ext},
-  ext_modules = ext_modules
+    name = 'PyShen',
+    version = '0.135',
+    description = 'PyShen is a port of the Shen language to Python',
+    author = '',
+    cmdclass = {'build_ext': build_ext},
+    py_modules = ['pyshen'],
+    ext_modules = ext_modules,
+    long_description = ''
 )

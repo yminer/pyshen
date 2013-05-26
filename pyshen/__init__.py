@@ -111,7 +111,6 @@ def kl_quit():
 def shen_compile(form, rvalue=False):
     env = ShenEnv()
     code = env.compile_shen(form)
-    # print ast.dump(code)
     module = ast.Module(body=[])
     if isinstance(code, list):
         for line in code:
@@ -683,34 +682,38 @@ class ShenEnv:
             return ast.Name(id=sym, ctx=ast.Load())
 
     def compile_shen(self, form, lexical_vars = {}, in_tail_pos = True, **kwargs):
-        if isinstance(form, SymTrue):
-            return ast.Name(id='True', ctx=ast.Load())
-        elif isinstance(form, SymFalse):
-            return ast.Name(id='False', ctx=ast.Load())
-        elif isinstance(form, Sym):
-            if form.sym == "true":
+        try:
+            if isinstance(form, SymTrue):
                 return ast.Name(id='True', ctx=ast.Load())
-            elif form.sym == "false":
+            elif isinstance(form, SymFalse):
                 return ast.Name(id='False', ctx=ast.Load())
-            if form.sym in lexical_vars:
-                name = lexical_vars[form.sym]
-                if name.startswith("KL_LOC"):
-                    return ast.Attribute(value=ast.Name(id="KL_CTX", ctx=ast.Load()),
-                                         attr=name, ctx=ast.Load())
+            elif isinstance(form, Sym):
+                if form.sym == "true":
+                    return ast.Name(id='True', ctx=ast.Load())
+                elif form.sym == "false":
+                    return ast.Name(id='False', ctx=ast.Load())
+                if form.sym in lexical_vars:
+                    name = lexical_vars[form.sym]
+                    if name.startswith("KL_LOC"):
+                        return ast.Attribute(value=ast.Name(id="KL_CTX", ctx=ast.Load()),
+                                             attr=name, ctx=ast.Load())
+                    else:
+                        return ast.Name(id=name, ctx=ast.Load())
                 else:
-                    return ast.Name(id=name, ctx=ast.Load())
+                    return form
+            elif isinstance(form, str):
+                return ast.Str(form)
+            elif form == []:
+                return ast.parse("[]", mode="eval").body
+            elif isinstance(form, list):
+                return self.compile_form(form, lexical_vars, in_tail_pos, **kwargs)
+            elif isinstance(form, numbers.Number):
+                return ast.Num(form)
             else:
-                return form
-        elif isinstance(form, str):
-            return ast.Str(form)
-        elif form == []:
-            return ast.parse("[]", mode="eval").body
-        elif isinstance(form, list):
-            return self.compile_form(form, lexical_vars, in_tail_pos, **kwargs)
-        elif isinstance(form, numbers.Number):
-            return ast.Num(form)
-        else:
-            raise SException("unexpected form %s" %form)
+                raise SException("unexpected form %s" %form)
+        except Exception, e:
+            print "compilation failed", e
+            raise e
 
     def compile_defun(self, form, lexical_vars):
         name, arglist, body = cons_nth(1, form), cons_nth(2, form), cons_nth(3, form)
@@ -1098,3 +1101,10 @@ from pyshen.shen import *
 
 def pyshen():
     shen_eval_kl(shen_to_cons([Sym("shen.shen")]), globals())
+
+def eval_string(s):
+    forms = tco_apply(Sym("read-from-string"), [s])
+    result = None
+    for form in shen_cons_iter(forms):
+        result = tco_apply(Sym("eval"), [form])
+    return result

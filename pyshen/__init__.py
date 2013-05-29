@@ -12,6 +12,7 @@ import contextlib
 import time
 import uuid
 import functools
+import inspect
 
 ################################################################################
 ################################   ENVIRONMENT   ###############################
@@ -90,7 +91,22 @@ def tco_apply(fun, args, glob=globals()):
         try:
             result = apply(fun, args)
         except TypeError, e:
-            result = functools.partial(fun, *args)
+            try:
+                arity = fun.arity
+            except AttributeError, e1:
+                arity = len(inspect.getargspec(fun).args)
+                fun.arity = arity
+            argsize = len(args)
+            if arity > argsize:
+                result = functools.partial(fun, *args)
+                result.arity = arity - argsize
+            else:
+                #uncurrying, from Shen-Ruby implementation
+                fun = tco_apply(fun, args[0:arity])
+                if not (isinstance(fun, Sym) or hasattr(fun, "__call__")):
+                    raise SException("the value " + str(fun) + " is not a Sym or a function")
+                args = args[arity:]
+                continue
         if tramp_fn:
             args = tramp_args
             tramp_args = None

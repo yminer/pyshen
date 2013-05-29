@@ -10,6 +10,7 @@ from IPython.core.magic import (Magics, magics_class, cell_magic, line_magic,
 class SMagics(Magics):
     def __init__(self, shell):
         super(SMagics, self).__init__(shell)
+        pyshen.eval_string('(shen_credits)')
 
     @line_cell_magic
     def S(self, line, cell=None, local_ns=None):

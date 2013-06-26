@@ -82,6 +82,10 @@ class Sym(ast.Name):
             self.ssym = pystr(self.sym)
         # "kl_" + str(slugify(unicode(self.sym.replace(".", "_")))).replace("-", "_")
         self.value = None
+        global SYMDIC, SYMDIC_MODE
+        if SYMDIC_MODE:
+            if not self.sym in SYMDIC:
+                SYMDIC[self.sym] = "symdic_" + self.ssym
     def __repr__(self):
         return self.sym
     def value(self):
